@@ -16,12 +16,12 @@ const CONFIG = {
     horasParaDesconto: 6
 };
 
-// Senhas simples para demonstração
+// Senhas simples para demonstração (agora usando email como chave)
 const PASSWORDS = {
-    'admin': '123456',
-    'joao': '123',
-    'maria': '123',
-    'pedro': '123'
+    'admin@sistema.com': '123456',
+    'joao@sistema.com': '123',
+    'maria@sistema.com': '123',
+    'pedro@sistema.com': '123'
 };
 
 // Inicialização
@@ -99,6 +99,10 @@ function showLoginScreen() {
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainSystem').style.display = 'none';
     clearInterval(timeInterval);
+    
+    // Limpar mensagens
+    hideError('loginError');
+    hideError('registerError');
 }
 
 // Mostrar tela de registro
@@ -106,6 +110,10 @@ function showRegisterScreen() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('registerScreen').style.display = 'flex';
     document.getElementById('mainSystem').style.display = 'none';
+    
+    // Limpar mensagens
+    hideError('loginError');
+    hideError('registerError');
 }
 
 // Mostrar sistema principal
@@ -140,25 +148,29 @@ function showMainSystem() {
 async function handleLogin(e) {
     e.preventDefault();
     
-    const username = document.getElementById('username').value;
+    const email = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
+    console.log('Tentando login com:', email);
+    
     try {
-        // Buscar usuário no banco
+        // Buscar usuário no banco pelo email
         const { data: user, error } = await supabase
             .from('users')
             .select('*')
-            .eq('username', username)
+            .eq('email', email)
             .eq('ativo', true)
             .single();
         
+        console.log('Resultado da busca:', { user, error });
+        
         if (error || !user) {
-            showError('loginError', 'Usuário não encontrado ou inativo');
+            showError('loginError', 'Email não encontrado ou usuário inativo');
             return;
         }
         
         // Verificar senha
-        if (PASSWORDS[username] !== password) {
+        if (PASSWORDS[email] !== password) {
             showError('loginError', 'Senha incorreta');
             return;
         }
@@ -166,6 +178,7 @@ async function handleLogin(e) {
         // Login bem-sucedido
         currentUser = user;
         sessionStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('Login bem-sucedido:', currentUser);
         showMainSystem();
         
     } catch (error) {
@@ -178,54 +191,72 @@ async function handleLogin(e) {
 async function handleRegister(e) {
     e.preventDefault();
     
-    const nome = document.getElementById('regNome').value;
-    const email = document.getElementById('regEmail').value;
-    const username = document.getElementById('regUsername').value;
-    const password = document.getElementById('regPassword').value;
+    const nome = document.getElementById('regNome').value.trim();
+    const email = document.getElementById('regEmail').value.trim().toLowerCase();
+    const senha = document.getElementById('regPassword').value;
+    
+    console.log('Tentando registrar:', { nome, email });
+    
+    if (!nome || !email || !senha) {
+        showError('registerError', 'Preencha todos os campos');
+        return;
+    }
+    
+    if (senha.length < 3) {
+        showError('registerError', 'Senha deve ter pelo menos 3 caracteres');
+        return;
+    }
     
     try {
-        // Verificar se usuário já existe
+        // Verificar se email já existe
         const { data: existingUser } = await supabase
             .from('users')
-            .select('username')
-            .eq('username', username)
+            .select('email')
+            .eq('email', email)
             .single();
         
         if (existingUser) {
-            showError('registerError', 'Nome de usuário já existe');
+            showError('registerError', 'Este email já está cadastrado');
             return;
         }
         
         // Criar novo usuário (inativo, aguardando aprovação)
-        const { error } = await supabase
+        const { data: newUser, error } = await supabase
             .from('users')
             .insert({
-                username: username,
-                password_hash: `temp_${password}`, // Placeholder
+                username: email, // Usar email como username também
+                password_hash: `temp_${senha}`, // Placeholder
                 nome: nome,
                 email: email,
                 tipo: 'funcionario',
                 ativo: false
-            });
+            })
+            .select()
+            .single();
         
-        if (error) throw error;
+        if (error) {
+            console.error('Erro ao inserir usuário:', error);
+            throw error;
+        }
         
         // Adicionar senha ao objeto local
-        PASSWORDS[username] = password;
+        PASSWORDS[email] = senha;
         
-        showSuccess('registerError', 'Conta criada! Aguarde aprovação do administrador.');
+        console.log('Usuário criado:', newUser);
+        
+        showSuccess('registerError', 'Conta criada com sucesso! Aguarde aprovação do administrador.');
         
         // Limpar formulário
         document.getElementById('registerForm').reset();
         
-        // Voltar para login após 2 segundos
+        // Voltar para login após 3 segundos
         setTimeout(() => {
             showLoginScreen();
-        }, 2000);
+        }, 3000);
         
     } catch (error) {
         console.error('Erro no registro:', error);
-        showError('registerError', 'Erro ao criar conta');
+        showError('registerError', 'Erro ao criar conta. Tente novamente.');
     }
 }
 
@@ -474,5 +505,647 @@ function showAdminSection(section) {
             loadUsuarios();
             break;
         case 'relatorios':
-            // Rela
-(Content truncated due to size limit. Use line ranges to read in chunks)
+            // Relatórios já carregados
+            break;
+    }
+}
+
+async function loadPontosPendentes() {
+    try {
+        const { data: pontos } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .eq('status', 'pendente')
+            .order('data', { ascending: false });
+        
+        const container = document.getElementById('pontosPendentes');
+        const countElement = document.getElementById('pendentesCount');
+        
+        if (countElement) countElement.textContent = pontos?.length || 0;
+        
+        if (!pontos || pontos.length === 0) {
+            container.innerHTML = '<p>Nenhum ponto pendente</p>';
+            return;
+        }
+        
+        container.innerHTML = pontos.map(ponto => `
+            <div class="registro-item">
+                <div class="registro-header">
+                    <div>
+                        <strong>${ponto.users.nome}</strong>
+                        <span class="registro-data">${formatDate(ponto.data)}</span>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn btn-success btn-sm" onclick="aprovarPonto(${ponto.id})">
+                            <i class="fas fa-check"></i> Aprovar
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="rejeitarPonto(${ponto.id})">
+                            <i class="fas fa-times"></i> Rejeitar
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="editarRegistro(${ponto.id})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                    </div>
+                </div>
+                <div class="registro-horarios">
+                    <div class="horario-item">
+                        <div class="horario-label">Entrada</div>
+                        <div class="horario-valor">${ponto.entrada ? formatTime(ponto.entrada) : '--:--'}</div>
+                    </div>
+                    <div class="horario-item">
+                        <div class="horario-label">Saída</div>
+                        <div class="horario-valor">${ponto.saida ? formatTime(ponto.saida) : '--:--'}</div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Erro ao carregar pontos pendentes:', error);
+        document.getElementById('pontosPendentes').innerHTML = '<p>Erro ao carregar pontos pendentes</p>';
+    }
+}
+
+async function loadTodosRegistros() {
+    try {
+        const { data: registros } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .order('data', { ascending: false })
+            .limit(50);
+        
+        const container = document.getElementById('todosRegistros');
+        
+        if (!registros || registros.length === 0) {
+            container.innerHTML = '<p>Nenhum registro encontrado</p>';
+            return;
+        }
+        
+        container.innerHTML = registros.map(registro => `
+            <div class="registro-item">
+                <div class="registro-header">
+                    <div>
+                        <strong>${registro.users.nome}</strong>
+                        <span class="registro-data">${formatDate(registro.data)}</span>
+                    </div>
+                    <span class="registro-status status-${registro.status}">${getStatusText(registro.status)}</span>
+                </div>
+                <div class="registro-horarios">
+                    <div class="horario-item">
+                        <div class="horario-label">Entrada</div>
+                        <div class="horario-valor">${registro.entrada ? formatTime(registro.entrada) : '--:--'}</div>
+                    </div>
+                    <div class="horario-item">
+                        <div class="horario-label">Saída</div>
+                        <div class="horario-valor">${registro.saida ? formatTime(registro.saida) : '--:--'}</div>
+                    </div>
+                </div>
+                ${registro.observacoes ? `<div class="registro-obs"><strong>Obs:</strong> ${registro.observacoes}</div>` : ''}
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Erro ao carregar todos os registros:', error);
+        document.getElementById('todosRegistros').innerHTML = '<p>Erro ao carregar registros</p>';
+    }
+}
+
+async function loadUsuarios() {
+    try {
+        const { data: usuarios } = await supabase
+            .from('users')
+            .select('*')
+            .order('nome');
+        
+        if (!usuarios) return;
+        
+        const ativos = usuarios.filter(u => u.ativo === true);
+        const pendentes = usuarios.filter(u => u.ativo === false);
+        const inativos = []; // Para futuro uso
+        
+        // Atualizar contadores
+        const countElement = document.getElementById('usuariosPendentesCount');
+        if (countElement) countElement.textContent = pendentes.length;
+        
+        // Carregar usuários ativos
+        const ativosContainer = document.getElementById('usuariosAtivos');
+        ativosContainer.innerHTML = ativos.map(usuario => `
+            <div class="user-item">
+                <div class="user-info">
+                    <h4>${usuario.nome}</h4>
+                    <p>Email: ${usuario.email}</p>
+                    <p>Tipo: ${usuario.tipo}</p>
+                </div>
+                <div class="user-actions">
+                    ${usuario.tipo !== 'admin' ? `
+                        <button class="btn btn-danger btn-sm" onclick="removerUsuario(${usuario.id}, '${usuario.nome}')">
+                            <i class="fas fa-trash"></i> Remover
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        // Carregar usuários pendentes
+        const pendentesContainer = document.getElementById('usuariosPendentes');
+        pendentesContainer.innerHTML = pendentes.map(usuario => `
+            <div class="user-item">
+                <div class="user-info">
+                    <h4>${usuario.nome}</h4>
+                    <p>Email: ${usuario.email}</p>
+                    <p>Status: Aguardando aprovação</p>
+                </div>
+                <div class="user-actions">
+                    <button class="btn btn-success btn-sm" onclick="aprovarUsuario(${usuario.id})">
+                        <i class="fas fa-check"></i> Aprovar
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="rejeitarUsuario(${usuario.id})">
+                        <i class="fas fa-times"></i> Rejeitar
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+        // Carregar filtro de usuários
+        const filtroSelect = document.getElementById('filtroUsuario');
+        if (filtroSelect) {
+            filtroSelect.innerHTML = '<option value="">Todos os usuários</option>' +
+                ativos.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+        }
+        
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+    }
+}
+
+function showUsersTab(tab) {
+    // Atualizar tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+    
+    // Mostrar container
+    document.querySelectorAll('.users-container').forEach(container => {
+        container.style.display = 'none';
+    });
+    document.getElementById(`usuarios${tab.charAt(0).toUpperCase() + tab.slice(1)}`).style.display = 'block';
+}
+
+// === AÇÕES ADMIN ===
+
+async function aprovarPonto(id) {
+    try {
+        const { error } = await supabase
+            .from('registros_ponto')
+            .update({ status: 'aprovado' })
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showSuccessMessage('Ponto aprovado com sucesso!');
+        await loadPontosPendentes();
+        await loadTodosRegistros();
+        
+    } catch (error) {
+        console.error('Erro ao aprovar ponto:', error);
+        showErrorMessage('Erro ao aprovar ponto');
+    }
+}
+
+async function rejeitarPonto(id) {
+    const motivo = prompt('Motivo da rejeição (opcional):');
+    
+    try {
+        const { error } = await supabase
+            .from('registros_ponto')
+            .update({ 
+                status: 'rejeitado',
+                observacoes: motivo || 'Rejeitado pelo administrador'
+            })
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showSuccessMessage('Ponto rejeitado!');
+        await loadPontosPendentes();
+        await loadTodosRegistros();
+        
+    } catch (error) {
+        console.error('Erro ao rejeitar ponto:', error);
+        showErrorMessage('Erro ao rejeitar ponto');
+    }
+}
+
+async function aprovarUsuario(id) {
+    try {
+        const { error } = await supabase
+            .from('users')
+            .update({ ativo: true })
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showSuccessMessage('Usuário aprovado com sucesso!');
+        await loadUsuarios();
+        
+    } catch (error) {
+        console.error('Erro ao aprovar usuário:', error);
+        showErrorMessage('Erro ao aprovar usuário');
+    }
+}
+
+async function rejeitarUsuario(id) {
+    if (!confirm('Tem certeza que deseja rejeitar este usuário? Esta ação não pode ser desfeita.')) {
+        return;
+    }
+    
+    try {
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showSuccessMessage('Usuário rejeitado!');
+        await loadUsuarios();
+        
+    } catch (error) {
+        console.error('Erro ao rejeitar usuário:', error);
+        showErrorMessage('Erro ao rejeitar usuário');
+    }
+}
+
+async function removerUsuario(id, nome) {
+    if (!confirm(`Tem certeza que deseja remover permanentemente o usuário "${nome}"?\n\nEsta ação não pode ser desfeita e todos os registros de ponto deste usuário também serão removidos.`)) {
+        return;
+    }
+    
+    try {
+        // Primeiro remover registros de ponto
+        await supabase
+            .from('registros_ponto')
+            .delete()
+            .eq('funcionario_id', id);
+        
+        // Depois remover usuário
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        showSuccessMessage(`Usuário "${nome}" removido com sucesso!`);
+        await loadUsuarios();
+        
+    } catch (error) {
+        console.error('Erro ao remover usuário:', error);
+        showErrorMessage('Erro ao remover usuário');
+    }
+}
+
+// === MODAL ADICIONAR USUÁRIO ===
+
+function showAddUserModal() {
+    document.getElementById('addUserModal').style.display = 'flex';
+    document.getElementById('addUserForm').reset();
+}
+
+function hideAddUserModal() {
+    document.getElementById('addUserModal').style.display = 'none';
+}
+
+async function saveAddUser() {
+    const nome = document.getElementById('addUserNome').value.trim();
+    const email = document.getElementById('addUserEmail').value.trim().toLowerCase();
+    const username = document.getElementById('addUserUsername').value.trim();
+    const password = document.getElementById('addUserPassword').value;
+    const tipo = document.getElementById('addUserTipo').value;
+    
+    if (!nome || !email || !username || !password) {
+        showErrorMessage('Preencha todos os campos');
+        return;
+    }
+    
+    try {
+        // Verificar se email já existe
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('email')
+            .eq('email', email)
+            .single();
+        
+        if (existingUser) {
+            showErrorMessage('Este email já está cadastrado');
+            return;
+        }
+        
+        // Criar usuário
+        const { error } = await supabase
+            .from('users')
+            .insert({
+                username: username,
+                password_hash: `temp_${password}`,
+                nome: nome,
+                email: email,
+                tipo: tipo,
+                ativo: true
+            });
+        
+        if (error) throw error;
+        
+        // Adicionar senha ao objeto local
+        PASSWORDS[email] = password;
+        
+        hideAddUserModal();
+        showSuccessMessage(`Usuário "${nome}" adicionado com sucesso!`);
+        await loadUsuarios();
+        
+    } catch (error) {
+        console.error('Erro ao adicionar usuário:', error);
+        showErrorMessage('Erro ao adicionar usuário');
+    }
+}
+
+// === MODAL EDITAR REGISTRO ===
+
+async function editarRegistro(id) {
+    try {
+        const { data: registro } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .eq('id', id)
+            .single();
+        
+        if (!registro) return;
+        
+        // Preencher modal
+        document.getElementById('editRegistroId').value = registro.id;
+        document.getElementById('editData').value = registro.data;
+        document.getElementById('editUsuario').value = registro.users.nome;
+        document.getElementById('editEntrada').value = registro.entrada ? formatTimeForInput(registro.entrada) : '';
+        document.getElementById('editSaida').value = registro.saida ? formatTimeForInput(registro.saida) : '';
+        document.getElementById('editMotivo').value = '';
+        
+        // Mostrar modal
+        document.getElementById('editModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Erro ao carregar registro:', error);
+        showErrorMessage('Erro ao carregar registro');
+    }
+}
+
+function hideEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+async function saveEditRegistro() {
+    const id = document.getElementById('editRegistroId').value;
+    const entrada = document.getElementById('editEntrada').value;
+    const saida = document.getElementById('editSaida').value;
+    const motivo = document.getElementById('editMotivo').value;
+    
+    if (!motivo.trim()) {
+        showErrorMessage('Motivo da alteração é obrigatório');
+        return;
+    }
+    
+    try {
+        const data = document.getElementById('editData').value;
+        
+        const updateData = {
+            entrada: entrada ? `${data}T${entrada}:00` : null,
+            saida: saida ? `${data}T${saida}:00` : null,
+            observacoes: motivo,
+            editado_por: currentUser.id,
+            editado_em: new Date().toISOString()
+        };
+        
+        const { error } = await supabase
+            .from('registros_ponto')
+            .update(updateData)
+            .eq('id', id);
+        
+        if (error) throw error;
+        
+        hideEditModal();
+        showSuccessMessage('Registro editado com sucesso!');
+        await loadPontosPendentes();
+        await loadTodosRegistros();
+        
+    } catch (error) {
+        console.error('Erro ao editar registro:', error);
+        showErrorMessage('Erro ao editar registro');
+    }
+}
+
+// === FILTROS E RELATÓRIOS ===
+
+async function aplicarFiltros() {
+    const data = document.getElementById('filtroData').value;
+    const usuarioId = document.getElementById('filtroUsuario').value;
+    
+    try {
+        let query = supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .order('data', { ascending: false });
+        
+        if (data) {
+            query = query.eq('data', data);
+        }
+        
+        if (usuarioId) {
+            query = query.eq('funcionario_id', usuarioId);
+        }
+        
+        const { data: registros } = await query.limit(100);
+        
+        const container = document.getElementById('todosRegistros');
+        
+        if (!registros || registros.length === 0) {
+            container.innerHTML = '<p>Nenhum registro encontrado com os filtros aplicados</p>';
+            return;
+        }
+        
+        container.innerHTML = registros.map(registro => `
+            <div class="registro-item">
+                <div class="registro-header">
+                    <div>
+                        <strong>${registro.users.nome}</strong>
+                        <span class="registro-data">${formatDate(registro.data)}</span>
+                    </div>
+                    <span class="registro-status status-${registro.status}">${getStatusText(registro.status)}</span>
+                </div>
+                <div class="registro-horarios">
+                    <div class="horario-item">
+                        <div class="horario-label">Entrada</div>
+                        <div class="horario-valor">${registro.entrada ? formatTime(registro.entrada) : '--:--'}</div>
+                    </div>
+                    <div class="horario-item">
+                        <div class="horario-label">Saída</div>
+                        <div class="horario-valor">${registro.saida ? formatTime(registro.saida) : '--:--'}</div>
+                    </div>
+                </div>
+                ${registro.observacoes ? `<div class="registro-obs"><strong>Obs:</strong> ${registro.observacoes}</div>` : ''}
+            </div>
+        `).join('');
+        
+    } catch (error) {
+        console.error('Erro ao aplicar filtros:', error);
+        showErrorMessage('Erro ao aplicar filtros');
+    }
+}
+
+async function gerarRelatorioHoras() {
+    const mes = document.getElementById('relatorioMes').value;
+    
+    if (!mes) {
+        showErrorMessage('Selecione um mês');
+        return;
+    }
+    
+    try {
+        const [ano, mesNum] = mes.split('-');
+        const inicioMes = `${ano}-${mesNum}-01`;
+        const fimMes = `${ano}-${mesNum}-31`;
+        
+        const { data: registros } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .gte('data', inicioMes)
+            .lte('data', fimMes)
+            .eq('status', 'aprovado')
+            .not('saida', 'is', null);
+        
+        if (!registros || registros.length === 0) {
+            document.getElementById('relatorioHorasResult').innerHTML = '<p>Nenhum registro encontrado para o período</p>';
+            return;
+        }
+        
+        // Agrupar por usuário
+        const horasPorUsuario = {};
+        
+        registros.forEach(registro => {
+            const nome = registro.users.nome;
+            if (!horasPorUsuario[nome]) {
+                horasPorUsuario[nome] = { totalMinutos: 0, dias: 0 };
+            }
+            
+            const entrada = new Date(registro.entrada);
+            const saida = new Date(registro.saida);
+            let minutos = (saida - entrada) / (1000 * 60);
+            
+            // Descontar almoço se trabalhou mais de 6 horas
+            if (minutos > 6 * 60) {
+                minutos -= 60; // 1 hora de almoço
+            }
+            
+            horasPorUsuario[nome].totalMinutos += minutos;
+            horasPorUsuario[nome].dias++;
+        });
+        
+        // Gerar relatório
+        const relatorioHTML = Object.entries(horasPorUsuario)
+            .map(([nome, dados]) => {
+                const horas = Math.floor(dados.totalMinutos / 60);
+                const minutos = Math.round(dados.totalMinutos % 60);
+                return `
+                    <div class="relatorio-item">
+                        <strong>${nome}</strong><br>
+                        Total: ${horas}h ${minutos}min<br>
+                        Dias trabalhados: ${dados.dias}
+                    </div>
+                `;
+            })
+            .join('');
+        
+        document.getElementById('relatorioHorasResult').innerHTML = `
+            <h4>Relatório de Horas - ${mes}</h4>
+            <div class="relatorio-lista">
+                ${relatorioHTML}
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Erro ao gerar relatório:', error);
+        showErrorMessage('Erro ao gerar relatório');
+    }
+}
+
+// === UTILITÁRIOS ===
+
+function formatTime(datetime) {
+    return new Date(datetime).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo'
+    });
+}
+
+function formatDate(date) {
+    return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
+}
+
+function formatTimeForInput(datetime) {
+    return new Date(datetime).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'America/Sao_Paulo'
+    });
+}
+
+function getStatusText(status) {
+    switch(status) {
+        case 'pendente': return 'Pendente';
+        case 'aprovado': return 'Aprovado';
+        case 'rejeitado': return 'Rejeitado';
+        default: return status;
+    }
+}
+
+function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    element.textContent = message;
+    element.style.display = 'block';
+    element.className = 'error-message';
+}
+
+function showSuccess(elementId, message) {
+    const element = document.getElementById(elementId);
+    element.textContent = message;
+    element.style.display = 'block';
+    element.className = 'success-message';
+}
+
+function hideError(elementId) {
+    const element = document.getElementById(elementId);
+    element.style.display = 'none';
+}
+
+function showErrorMessage(message) {
+    alert('Erro: ' + message);
+}
+
+function showSuccessMessage(message) {
+    alert(message);
+}
