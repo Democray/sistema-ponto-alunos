@@ -4,377 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle de Ponto</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Sistema de controle de ponto com aprovação administrativa">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <!-- Tela de Login -->
-    <div id="loginScreen" class="screen">
-        <div class="login-container">
-            <div class="login-header">
-                <i class="fas fa-clock"></i>
-                <h1>Sistema de Ponto</h1>
-                <p>Controle de horários simplificado</p>
-            </div>
-            
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="username">Usuário</label>
-                    <input type="text" id="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" required>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Entrar
-                </button>
-                
-                <div id="loginError" class="error-message" style="display: none;"></div>
-            </form>
-            
-            <div class="login-actions">
-                <button id="showRegisterBtn" class="btn btn-link">
-                    <i class="fas fa-user-plus"></i>
-                    Criar Conta
-                </button>
-            </div>
-            
-            <div class="login-footer">
-                <p><strong>Usuários de Teste:</strong></p>
-                <p>Admin: admin / 123456</p>
-                <p>Funcionário: joao / 123</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tela de Cadastro -->
-    <div id="registerScreen" class="screen" style="display: none;">
-        <div class="login-container">
-            <div class="login-header">
-                <i class="fas fa-user-plus"></i>
-                <h1>Criar Conta</h1>
-                <p>Cadastre-se no sistema</p>
-            </div>
-            
-            <form id="registerForm" class="login-form">
-                <div class="form-group">
-                    <label for="regNome">Nome Completo</label>
-                    <input type="text" id="regNome" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="regEmail">Email</label>
-                    <input type="email" id="regEmail" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="regUsername">Usuário</label>
-                    <input type="text" id="regUsername" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="regPassword">Senha</label>
-                    <input type="password" id="regPassword" required minlength="3">
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i>
-                    Criar Conta
-                </button>
-                
-                <div id="registerError" class="error-message" style="display: none;"></div>
-            </form>
-            
-            <div class="login-actions">
-                <button id="showLoginBtn" class="btn btn-link">
-                    <i class="fas fa-arrow-left"></i>
-                    Voltar ao Login
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sistema Principal -->
-    <div id="mainSystem" class="screen" style="display: none;">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-clock"></i>
-                    <span id="systemTitle">Sistema de Ponto</span>
-                </div>
-                <div class="user-info">
-                    <span id="userGreeting">Olá, Usuário</span>
-                    <button id="logoutBtn" class="btn btn-secondary">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Sair
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Painel do Funcionário -->
-        <div id="funcionarioPanel" class="panel" style="display: none;">
-            <main class="main-content">
-                <!-- Relógio -->
-                <div class="clock-section">
-                    <div class="current-time" id="currentTime">--:--:--</div>
-                    <div class="current-date" id="currentDate">--/--/----</div>
-                </div>
-
-                <!-- Seção de Registro de Ponto -->
-                <section class="ponto-section">
-                    <h2>Registrar Ponto</h2>
-                    <div id="pontoStatus" class="ponto-status">
-                        <p>Carregando status...</p>
-                    </div>
-                    <button id="baterPontoBtn" class="btn btn-success btn-large">
-                        <i class="fas fa-clock"></i>
-                        Bater Ponto
-                    </button>
-                </section>
-
-                <!-- Seção de Registros -->
-                <section class="registros-section">
-                    <h2>Meus Registros Recentes</h2>
-                    <div id="meusRegistros" class="registros-container">
-                        <p>Carregando registros...</p>
-                    </div>
-                </section>
-            </main>
-        </div>
-
-        <!-- Painel do Administrador -->
-        <div id="adminPanel" class="panel" style="display: none;">
-            <nav class="admin-nav">
-                <button class="nav-btn active" data-section="pendentes">
-                    <i class="fas fa-clock"></i>
-                    Pontos Pendentes
-                    <span class="badge" id="pendentesCount">0</span>
-                </button>
-                <button class="nav-btn" data-section="todos">
-                    <i class="fas fa-list"></i>
-                    Todos os Registros
-                </button>
-                <button class="nav-btn" data-section="usuarios">
-                    <i class="fas fa-users"></i>
-                    Gerenciar Usuários
-                    <span class="badge" id="usuariosPendentesCount">0</span>
-                </button>
-                <button class="nav-btn" data-section="relatorios">
-                    <i class="fas fa-chart-bar"></i>
-                    Relatórios
-                </button>
-            </nav>
-
-            <main class="admin-content">
-                <!-- Pontos Pendentes -->
-                <div id="adminPendentes" class="admin-section">
-                    <h2>Pontos Pendentes de Aprovação</h2>
-                    <div id="pontosPendentes" class="registros-container">
-                        <p>Carregando pontos pendentes...</p>
-                    </div>
-                </div>
-
-                <!-- Todos os Registros -->
-                <div id="adminTodos" class="admin-section" style="display: none;">
-                    <h2>Todos os Registros</h2>
-                    <div class="section-filters">
-                        <input type="date" id="filtroData" class="form-control">
-                        <select id="filtroUsuario" class="form-control">
-                            <option value="">Todos os usuários</option>
-                        </select>
-                        <button id="aplicarFiltros" class="btn btn-primary btn-sm">
-                            <i class="fas fa-filter"></i>
-                            Filtrar
-                        </button>
-                    </div>
-                    <div id="todosRegistros" class="registros-container">
-                        <p>Carregando todos os registros...</p>
-                    </div>
-                </div>
-
-                <!-- Gerenciar Usuários -->
-                <div id="adminUsuarios" class="admin-section" style="display: none;">
-                    <div class="section-header">
-                        <h2>Gerenciar Usuários</h2>
-                        <button id="addUserBtn" class="btn btn-success">
-                            <i class="fas fa-user-plus"></i>
-                            Adicionar Usuário
-                        </button>
-                    </div>
-                    
-                    <div class="users-tabs">
-                        <button class="tab-btn active" data-tab="ativos">Usuários Ativos</button>
-                        <button class="tab-btn" data-tab="pendentes">Pendentes de Aprovação</button>
-                        <button class="tab-btn" data-tab="inativos">Inativos</button>
-                    </div>
-                    
-                    <div id="usuariosAtivos" class="users-container">
-                        <p>Carregando usuários...</p>
-                    </div>
-                    
-                    <div id="usuariosPendentes" class="users-container" style="display: none;">
-                        <p>Carregando usuários pendentes...</p>
-                    </div>
-                    
-                    <div id="usuariosInativos" class="users-container" style="display: none;">
-                        <p>Carregando usuários inativos...</p>
-                    </div>
-                </div>
-
-                <!-- Relatórios -->
-                <div id="adminRelatorios" class="admin-section" style="display: none;">
-                    <h2>Relatórios</h2>
-                    <div class="relatorios-grid">
-                        <div class="relatorio-card">
-                            <h3>Horas por Usuário</h3>
-                            <div class="relatorio-filters">
-                                <input type="month" id="relatorioMes" class="form-control">
-                                <button id="gerarRelatorioHoras" class="btn btn-primary">
-                                    <i class="fas fa-chart-bar"></i>
-                                    Gerar
-                                </button>
-                            </div>
-                            <div id="relatorioHorasResult" class="relatorio-result"></div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Modal de Confirmação de Ponto -->
-    <div id="confirmModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Confirmar Registro de Ponto</h3>
-            </div>
-            <div class="modal-body">
-                <div class="confirm-content">
-                    <i class="fas fa-clock confirm-icon"></i>
-                    <p id="confirmMessage">Tem certeza que deseja registrar seu ponto?</p>
-                    <div class="current-time-confirm" id="confirmTime"></div>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button id="cancelBtn" class="btn btn-secondary">Cancelar</button>
-                <button id="confirmBtn" class="btn btn-success">
-                    <i class="fas fa-check"></i>
-                    Confirmar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Edição de Registro -->
-    <div id="editModal" class="modal" style="display: none;">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>Editar Registro de Ponto</h3>
-                <button id="closeEditModal" class="btn-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editForm">
-                    <input type="hidden" id="editRegistroId">
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editData">Data</label>
-                            <input type="date" id="editData" class="form-control" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="editUsuario">Usuário</label>
-                            <input type="text" id="editUsuario" class="form-control" readonly>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editEntrada">Entrada</label>
-                            <input type="time" id="editEntrada" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="editSaida">Saída</label>
-                            <input type="time" id="editSaida" class="form-control">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editMotivo">Motivo da Alteração</label>
-                        <textarea id="editMotivo" class="form-control" rows="3" required placeholder="Descreva o motivo da alteração..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-actions">
-                <button id="cancelEditBtn" class="btn btn-secondary">Cancelar</button>
-                <button id="saveEditBtn" class="btn btn-success">
-                    <i class="fas fa-save"></i>
-                    Salvar Alterações
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Adicionar Usuário -->
-    <div id="addUserModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Adicionar Novo Usuário</h3>
-                <button id="closeAddUserModal" class="btn-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm">
-                    <div class="form-group">
-                        <label for="addUserNome">Nome Completo</label>
-                        <input type="text" id="addUserNome" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserEmail">Email</label>
-                        <input type="email" id="addUserEmail" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserUsername">Usuário</label>
-                        <input type="text" id="addUserUsername" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserPassword">Senha</label>
-                        <input type="password" id="addUserPassword" class="form-control" required minlength="3">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserTipo">Tipo</label>
-                        <select id="addUserTipo" class="form-control" required>
-                            <option value="funcionario">Funcionário</option>
-                            <option value="admin">Administrador</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-actions">
-                <button id="cancelAddUserBtn" class="btn btn-secondary">Cancelar</button>
-                <button id="saveAddUserBtn" class="btn btn-success">
-                    <i class="fas fa-user-plus"></i>
-                    Adicionar Usuário
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+    <style>
+        /* Reset e configurações básicas */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Tela de Loading */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .loading-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
 
