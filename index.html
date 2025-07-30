@@ -6,6 +6,7 @@
     <title>Sistema de Controle de Ponto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Reset e Base */
         * {
             margin: 0;
             padding: 0;
@@ -13,31 +14,45 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            line-height: 1.6;
         }
 
+        /* Container Principal */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Telas */
         .screen {
             display: none;
             min-height: 100vh;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
         }
 
         .screen.active {
+            display: block;
+        }
+
+        /* === TELA DE LOGIN === */
+        .login-screen {
             display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
         .login-container {
             background: white;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             text-align: center;
         }
 
@@ -45,16 +60,24 @@
             margin-bottom: 30px;
         }
 
-        .login-header i {
-            font-size: 48px;
-            color: #667eea;
-            margin-bottom: 15px;
+        .login-header .icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
         }
 
         .login-header h1 {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 28px;
+            font-weight: 700;
         }
 
         .login-header p {
@@ -71,33 +94,41 @@
             display: block;
             margin-bottom: 8px;
             color: #333;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 16px 20px;
             border: 2px solid #e1e5e9;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
         }
 
         .form-group input:focus {
             outline: none;
             border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-primary {
@@ -107,35 +138,37 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-link {
+        .btn-secondary {
             background: transparent;
             color: #667eea;
             border: 2px solid #667eea;
         }
 
-        .btn-link:hover {
+        .btn-secondary:hover {
             background: #667eea;
             color: white;
+        }
+
+        .error-message, .success-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .error-message {
             background: #fee;
             color: #c33;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
             border: 1px solid #fcc;
         }
 
         .success-message {
             background: #efe;
             color: #3c3;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
             border: 1px solid #cfc;
         }
 
@@ -143,102 +176,147 @@
             margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #eee;
-            font-size: 14px;
+            font-size: 13px;
             color: #666;
         }
 
-        /* Sistema Principal */
+        /* === SISTEMA PRINCIPAL === */
+        .main-system {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
         .header {
-            background: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-size: 20px;
-            font-weight: 600;
+            font-weight: 700;
             color: #333;
         }
 
-        .logo i {
-            color: #667eea;
+        .logo .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
 
-        .btn-secondary {
+        .user-greeting {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-logout {
             background: #6c757d;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
+        .btn-logout:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        /* Main Content */
         .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
+            flex: 1;
+            padding: 30px 0;
         }
 
+        /* Painel Funcionário */
         .clock-section {
             text-align: center;
             margin-bottom: 40px;
         }
 
         .current-time {
-            font-size: 48px;
+            font-size: 56px;
             font-weight: 300;
             color: white;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         .current-date {
             font-size: 18px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.9);
+            font-weight: 500;
         }
 
-        .ponto-section {
+        .card {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
+            padding: 30px;
             margin-bottom: 30px;
         }
 
-        .ponto-section h2 {
-            margin-bottom: 20px;
+        .card h2 {
+            margin-bottom: 24px;
             color: #333;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .ponto-status {
-            margin-bottom: 30px;
-            padding: 20px;
             background: #f8f9fa;
-            border-radius: 10px;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .ponto-status p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .ponto-status strong {
+            color: #333;
+            font-weight: 700;
         }
 
         .btn-large {
             padding: 20px 40px;
             font-size: 18px;
-            border-radius: 15px;
+            border-radius: 16px;
+            font-weight: 700;
         }
 
         .btn-success {
@@ -246,44 +324,51 @@
             color: white;
         }
 
-        .registros-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
         }
 
-        .registros-section h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
+        /* Registros */
         .registro-item {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
             border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .registro-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
 
         .registro-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+        }
+
+        .registro-info h4 {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 4px;
         }
 
         .registro-data {
-            font-weight: 600;
-            color: #333;
+            color: #666;
+            font-size: 14px;
         }
 
-        .registro-status {
-            padding: 4px 12px;
+        .status-badge {
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .status-pendente {
@@ -304,7 +389,7 @@
         .registro-horarios {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 24px;
         }
 
         .horario-item {
@@ -314,43 +399,54 @@
         .horario-label {
             font-size: 12px;
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .horario-valor {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 700;
             color: #333;
         }
 
         /* Admin Panel */
         .admin-nav {
             background: white;
-            padding: 20px;
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 24px;
             margin-bottom: 30px;
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
         }
 
         .nav-btn {
-            padding: 12px 20px;
+            padding: 16px 24px;
             border: 2px solid #e1e5e9;
             background: white;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
+            transition: all 0.3s ease;
+            font-weight: 600;
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
         }
 
         .nav-btn.active {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-color: transparent;
+        }
+
+        .nav-btn:hover:not(.active) {
             border-color: #667eea;
+            color: #667eea;
         }
 
         .badge {
@@ -360,9 +456,10 @@
             background: #dc3545;
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             font-size: 12px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -370,41 +467,49 @@
 
         .admin-content {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
         }
 
         .user-item {
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .user-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
 
         .user-info h4 {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: #333;
+            font-weight: 700;
         }
 
         .user-info p {
             color: #666;
             font-size: 14px;
-            margin: 2px 0;
+            margin: 4px 0;
         }
 
         .user-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 8px;
+            font-weight: 600;
         }
 
         .btn-danger {
@@ -413,99 +518,246 @@
             border: none;
         }
 
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        /* Modal */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            padding: 20px;
         }
 
         .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 400px;
-            width: 90%;
-        }
-
-        .modal-header {
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
             text-align: center;
-            margin-bottom: 20px;
         }
 
         .modal-header h3 {
             color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .confirm-content {
-            text-align: center;
-            margin: 20px 0;
+            margin: 30px 0;
         }
 
         .confirm-icon {
-            font-size: 48px;
-            color: #667eea;
-            margin-bottom: 15px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
         }
 
         .current-time-confirm {
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 32px;
+            font-weight: 700;
             color: #333;
-            margin-top: 15px;
+            margin-top: 16px;
         }
 
         .modal-actions {
             display: flex;
-            gap: 10px;
+            gap: 16px;
             justify-content: center;
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         .modal-actions .btn {
             width: auto;
-            padding: 10px 20px;
+            min-width: 120px;
         }
 
+        /* Responsividade */
         @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .login-container {
+                padding: 30px 24px;
+                margin: 16px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+
             .header-content {
                 flex-direction: column;
-                gap: 15px;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .user-info {
+                flex-direction: column;
+                gap: 12px;
             }
 
             .current-time {
-                font-size: 36px;
+                font-size: 40px;
             }
 
-            .registro-horarios {
-                grid-template-columns: 1fr;
-                gap: 10px;
+            .current-date {
+                font-size: 16px;
+            }
+
+            .card {
+                padding: 24px 20px;
+                margin-bottom: 20px;
+            }
+
+            .card h2 {
+                font-size: 20px;
             }
 
             .admin-nav {
                 flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-btn {
+                justify-content: center;
+                padding: 16px;
             }
 
             .user-item {
                 flex-direction: column;
-                gap: 15px;
+                gap: 16px;
                 text-align: center;
             }
+
+            .user-actions {
+                justify-content: center;
+            }
+
+            .registro-horarios {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .modal-content {
+                padding: 30px 20px;
+                margin: 16px;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+
+            .btn-large {
+                padding: 18px 32px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 24px 20px;
+            }
+
+            .form-group input {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+
+            .btn {
+                padding: 14px 20px;
+                font-size: 15px;
+            }
+
+            .current-time {
+                font-size: 32px;
+            }
+
+            .card {
+                padding: 20px 16px;
+            }
+
+            .horario-valor {
+                font-size: 20px;
+            }
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .screen.active {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Estados de carregamento */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading i {
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Melhorias de acessibilidade */
+        .btn:focus,
+        input:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
     </style>
 </head>
 <body>
     <!-- Tela de Login -->
-    <div id="loginScreen" class="screen active">
+    <div id="loginScreen" class="screen login-screen active">
         <div class="login-container">
             <div class="login-header">
-                <i class="fas fa-clock"></i>
+                <div class="icon">
+                    <i class="fas fa-clock"></i>
+                </div>
                 <h1>Sistema de Ponto</h1>
                 <p>Controle de horários simplificado</p>
             </div>
@@ -513,12 +765,12 @@
             <form id="loginForm" class="login-form">
                 <div class="form-group">
                     <label for="username">Email</label>
-                    <input type="email" id="username" required placeholder="seu@email.com">
+                    <input type="email" id="username" required placeholder="seu@email.com" autocomplete="email">
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Senha</label>
-                    <input type="password" id="password" required>
+                    <input type="password" id="password" required placeholder="Digite sua senha" autocomplete="current-password">
                 </div>
                 
                 <button type="submit" class="btn btn-primary">
@@ -530,7 +782,7 @@
             </form>
             
             <div class="login-actions">
-                <button id="showRegisterBtn" class="btn btn-link">
+                <button id="showRegisterBtn" class="btn btn-secondary">
                     <i class="fas fa-user-plus"></i>
                     Criar Conta
                 </button>
@@ -545,10 +797,12 @@
     </div>
 
     <!-- Tela de Cadastro -->
-    <div id="registerScreen" class="screen">
+    <div id="registerScreen" class="screen login-screen">
         <div class="login-container">
             <div class="login-header">
-                <i class="fas fa-user-plus"></i>
+                <div class="icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
                 <h1>Criar Conta</h1>
                 <p>Cadastre-se no sistema</p>
             </div>
@@ -556,17 +810,17 @@
             <form id="registerForm" class="login-form">
                 <div class="form-group">
                     <label for="regNome">Nome Completo</label>
-                    <input type="text" id="regNome" required placeholder="Seu nome completo">
+                    <input type="text" id="regNome" required placeholder="Seu nome completo" autocomplete="name">
                 </div>
                 
                 <div class="form-group">
                     <label for="regEmail">Email</label>
-                    <input type="email" id="regEmail" required placeholder="seu@email.com">
+                    <input type="email" id="regEmail" required placeholder="seu@email.com" autocomplete="email">
                 </div>
                 
                 <div class="form-group">
                     <label for="regPassword">Senha</label>
-                    <input type="password" id="regPassword" required minlength="3" placeholder="Mínimo 3 caracteres">
+                    <input type="password" id="regPassword" required minlength="3" placeholder="Mínimo 3 caracteres" autocomplete="new-password">
                 </div>
                 
                 <button type="submit" class="btn btn-primary">
@@ -578,7 +832,7 @@
             </form>
             
             <div class="login-actions">
-                <button id="showLoginBtn" class="btn btn-link">
+                <button id="showLoginBtn" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i>
                     Voltar ao Login
                 </button>
@@ -587,20 +841,24 @@
     </div>
 
     <!-- Sistema Principal -->
-    <div id="mainSystem" class="screen">
+    <div id="mainSystem" class="screen main-system">
         <!-- Header -->
         <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-clock"></i>
-                    <span id="systemTitle">Sistema de Ponto</span>
-                </div>
-                <div class="user-info">
-                    <span id="userGreeting">Olá, Usuário</span>
-                    <button id="logoutBtn" class="btn btn-secondary">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Sair
-                    </button>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <div class="icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <span id="systemTitle">Sistema de Ponto</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-greeting" id="userGreeting">Olá, Usuário</span>
+                        <button id="logoutBtn" class="btn-logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Sair
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -608,75 +866,94 @@
         <!-- Painel do Funcionário -->
         <div id="funcionarioPanel" class="panel" style="display: none;">
             <main class="main-content">
-                <!-- Relógio -->
-                <div class="clock-section">
-                    <div class="current-time" id="currentTime">--:--:--</div>
-                    <div class="current-date" id="currentDate">--/--/----</div>
+                <div class="container">
+                    <!-- Relógio -->
+                    <div class="clock-section">
+                        <div class="current-time" id="currentTime">--:--:--</div>
+                        <div class="current-date" id="currentDate">--/--/----</div>
+                    </div>
+
+                    <!-- Seção de Registro de Ponto -->
+                    <div class="card">
+                        <h2>Registrar Ponto</h2>
+                        <div id="pontoStatus" class="ponto-status">
+                            <div class="loading">
+                                <i class="fas fa-spinner"></i>
+                                Carregando status...
+                            </div>
+                        </div>
+                        <button id="baterPontoBtn" class="btn btn-success btn-large">
+                            <i class="fas fa-clock"></i>
+                            Bater Ponto
+                        </button>
+                    </div>
+
+                    <!-- Seção de Registros -->
+                    <div class="card">
+                        <h2>Meus Registros Recentes</h2>
+                        <div id="meusRegistros" class="registros-container">
+                            <div class="loading">
+                                <i class="fas fa-spinner"></i>
+                                Carregando registros...
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Seção de Registro de Ponto -->
-                <section class="ponto-section">
-                    <h2>Registrar Ponto</h2>
-                    <div id="pontoStatus" class="ponto-status">
-                        <p>Carregando status...</p>
-                    </div>
-                    <button id="baterPontoBtn" class="btn btn-success btn-large">
-                        <i class="fas fa-clock"></i>
-                        Bater Ponto
-                    </button>
-                </section>
-
-                <!-- Seção de Registros -->
-                <section class="registros-section">
-                    <h2>Meus Registros Recentes</h2>
-                    <div id="meusRegistros" class="registros-container">
-                        <p>Carregando registros...</p>
-                    </div>
-                </section>
             </main>
         </div>
 
         <!-- Painel do Administrador -->
         <div id="adminPanel" class="panel" style="display: none;">
             <main class="main-content">
-                <nav class="admin-nav">
-                    <button class="nav-btn active" data-section="pendentes">
-                        <i class="fas fa-clock"></i>
-                        Pontos Pendentes
-                        <span class="badge" id="pendentesCount">0</span>
-                    </button>
-                    <button class="nav-btn" data-section="todos">
-                        <i class="fas fa-list"></i>
-                        Todos os Registros
-                    </button>
-                    <button class="nav-btn" data-section="usuarios">
-                        <i class="fas fa-users"></i>
-                        Gerenciar Usuários
-                    </button>
-                </nav>
+                <div class="container">
+                    <nav class="admin-nav">
+                        <button class="nav-btn active" data-section="pendentes">
+                            <i class="fas fa-clock"></i>
+                            Pontos Pendentes
+                            <span class="badge" id="pendentesCount">0</span>
+                        </button>
+                        <button class="nav-btn" data-section="todos">
+                            <i class="fas fa-list"></i>
+                            Todos os Registros
+                        </button>
+                        <button class="nav-btn" data-section="usuarios">
+                            <i class="fas fa-users"></i>
+                            Gerenciar Usuários
+                        </button>
+                    </nav>
 
-                <div class="admin-content">
-                    <!-- Pontos Pendentes -->
-                    <div id="adminPendentes" class="admin-section">
-                        <h2>Pontos Pendentes de Aprovação</h2>
-                        <div id="pontosPendentes" class="registros-container">
-                            <p>Carregando pontos pendentes...</p>
+                    <div class="admin-content">
+                        <!-- Pontos Pendentes -->
+                        <div id="adminPendentes" class="admin-section">
+                            <h2>Pontos Pendentes de Aprovação</h2>
+                            <div id="pontosPendentes" class="registros-container">
+                                <div class="loading">
+                                    <i class="fas fa-spinner"></i>
+                                    Carregando pontos pendentes...
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Todos os Registros -->
-                    <div id="adminTodos" class="admin-section" style="display: none;">
-                        <h2>Todos os Registros</h2>
-                        <div id="todosRegistros" class="registros-container">
-                            <p>Carregando todos os registros...</p>
+                        <!-- Todos os Registros -->
+                        <div id="adminTodos" class="admin-section" style="display: none;">
+                            <h2>Todos os Registros</h2>
+                            <div id="todosRegistros" class="registros-container">
+                                <div class="loading">
+                                    <i class="fas fa-spinner"></i>
+                                    Carregando todos os registros...
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Gerenciar Usuários -->
-                    <div id="adminUsuarios" class="admin-section" style="display: none;">
-                        <h2>Gerenciar Usuários</h2>
-                        <div id="usuariosLista" class="users-container">
-                            <p>Carregando usuários...</p>
+                        <!-- Gerenciar Usuários -->
+                        <div id="adminUsuarios" class="admin-section" style="display: none;">
+                            <h2>Gerenciar Usuários</h2>
+                            <div id="usuariosLista" class="users-container">
+                                <div class="loading">
+                                    <i class="fas fa-spinner"></i>
+                                    Carregando usuários...
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -692,13 +969,18 @@
             </div>
             <div class="modal-body">
                 <div class="confirm-content">
-                    <i class="fas fa-clock confirm-icon"></i>
+                    <div class="confirm-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
                     <p id="confirmMessage">Tem certeza que deseja registrar seu ponto?</p>
                     <div class="current-time-confirm" id="confirmTime"></div>
                 </div>
             </div>
             <div class="modal-actions">
-                <button id="cancelBtn" class="btn btn-secondary">Cancelar</button>
+                <button id="cancelBtn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
                 <button id="confirmBtn" class="btn btn-success">
                     <i class="fas fa-check"></i>
                     Confirmar
@@ -746,7 +1028,7 @@
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Sistema iniciado (versão local)');
+            console.log('🚀 Sistema iniciado (versão com layout perfeito)');
             initializeApp();
         });
 
@@ -772,11 +1054,19 @@
             document.getElementById('confirmBtn').addEventListener('click', confirmBaterPonto);
             document.getElementById('cancelBtn').addEventListener('click', hideConfirmModal);
             
+            // Event listeners para navegação admin
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const section = e.currentTarget.dataset.section;
                     showAdminSection(section);
                 });
+            });
+
+            // Fechar modal clicando fora
+            document.getElementById('confirmModal').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    hideConfirmModal();
+                }
             });
         }
 
@@ -926,7 +1216,7 @@
             const statusElement = document.getElementById('pontoStatus');
             
             if (!ultimoRegistro) {
-                statusElement.innerHTML = '<p>Nenhum ponto registrado hoje. Clique para registrar sua <strong>entrada</strong>.</p>';
+                statusElement.innerHTML = '<p>Nenhum ponto registrado hoje.</p><p>Clique para registrar sua <strong>entrada</strong>.</p>';
             } else if (!ultimoRegistro.saida) {
                 statusElement.innerHTML = `
                     <p>Entrada registrada às <strong>${formatTime(ultimoRegistro.entrada)}</strong></p>
@@ -957,8 +1247,11 @@
             container.innerHTML = meusRegistros.map(registro => `
                 <div class="registro-item">
                     <div class="registro-header">
-                        <span class="registro-data">${formatDate(registro.data)}</span>
-                        <span class="registro-status status-${registro.status}">${getStatusText(registro.status)}</span>
+                        <div class="registro-info">
+                            <h4>${formatDate(registro.data)}</h4>
+                            <div class="registro-data">Registro do dia</div>
+                        </div>
+                        <span class="status-badge status-${registro.status}">${getStatusText(registro.status)}</span>
                     </div>
                     <div class="registro-horarios">
                         <div class="horario-item">
@@ -1009,7 +1302,16 @@
             loadPontoStatus();
             loadMeusRegistros();
             
-            alert(`✅ ${isEntrada ? 'Entrada' : 'Saída'} registrada com sucesso!`);
+            // Mostrar feedback visual
+            const btn = document.getElementById('baterPontoBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-check"></i> ${isEntrada ? 'Entrada' : 'Saída'} Registrada!`;
+            btn.style.background = '#28a745';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 3000);
         }
 
         function loadAdminData() {
@@ -1020,16 +1322,19 @@
         }
 
         function showAdminSection(section) {
+            // Atualizar navegação
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             document.querySelector(`[data-section="${section}"]`).classList.add('active');
             
+            // Mostrar seção
             document.querySelectorAll('.admin-section').forEach(sec => {
                 sec.style.display = 'none';
             });
             document.getElementById(`admin${section.charAt(0).toUpperCase() + section.slice(1)}`).style.display = 'block';
             
+            // Carregar dados
             switch(section) {
                 case 'pendentes':
                     loadPontosPendentes();
@@ -1061,9 +1366,9 @@
                 return `
                     <div class="registro-item">
                         <div class="registro-header">
-                            <div>
-                                <strong>${user?.nome || 'Usuário'}</strong>
-                                <span class="registro-data">${formatDate(ponto.data)}</span>
+                            <div class="registro-info">
+                                <h4>${user?.nome || 'Usuário'}</h4>
+                                <div class="registro-data">${formatDate(ponto.data)}</div>
                             </div>
                             <div class="user-actions">
                                 <button class="btn btn-success btn-sm" onclick="aprovarPonto(${ponto.id})">
@@ -1106,11 +1411,11 @@
                 return `
                     <div class="registro-item">
                         <div class="registro-header">
-                            <div>
-                                <strong>${user?.nome || 'Usuário'}</strong>
-                                <span class="registro-data">${formatDate(registro.data)}</span>
+                            <div class="registro-info">
+                                <h4>${user?.nome || 'Usuário'}</h4>
+                                <div class="registro-data">${formatDate(registro.data)}</div>
                             </div>
-                            <span class="registro-status status-${registro.status}">${getStatusText(registro.status)}</span>
+                            <span class="status-badge status-${registro.status}">${getStatusText(registro.status)}</span>
                         </div>
                         <div class="registro-horarios">
                             <div class="horario-item">
@@ -1175,11 +1480,12 @@
             container.innerHTML = html;
         }
 
+        // Funções de ação do admin
         function aprovarPonto(id) {
             const registro = registros.find(r => r.id === id);
             if (registro) {
                 registro.status = 'aprovado';
-                alert('Ponto aprovado com sucesso!');
+                showToast('Ponto aprovado com sucesso!', 'success');
                 loadPontosPendentes();
                 loadTodosRegistros();
             }
@@ -1191,7 +1497,7 @@
             if (registro) {
                 registro.status = 'rejeitado';
                 registro.observacoes = motivo || 'Rejeitado pelo administrador';
-                alert('Ponto rejeitado!');
+                showToast('Ponto rejeitado!', 'error');
                 loadPontosPendentes();
                 loadTodosRegistros();
             }
@@ -1201,7 +1507,7 @@
             const usuario = users.find(u => u.id === id);
             if (usuario) {
                 usuario.ativo = true;
-                alert('Usuário aprovado com sucesso!');
+                showToast('Usuário aprovado com sucesso!', 'success');
                 loadUsuarios();
             }
         }
@@ -1211,7 +1517,7 @@
                 const index = users.findIndex(u => u.id === id);
                 if (index !== -1) {
                     users.splice(index, 1);
-                    alert('Usuário rejeitado!');
+                    showToast('Usuário rejeitado!', 'error');
                     loadUsuarios();
                 }
             }
@@ -1223,12 +1529,13 @@
                 if (userIndex !== -1) {
                     users.splice(userIndex, 1);
                     registros = registros.filter(r => r.funcionario_id !== id);
-                    alert(`Usuário "${nome}" removido com sucesso!`);
+                    showToast(`Usuário "${nome}" removido com sucesso!`, 'success');
                     loadUsuarios();
                 }
             }
         }
 
+        // Funções utilitárias
         function formatTime(datetime) {
             return new Date(datetime).toLocaleTimeString('pt-BR', {
                 hour: '2-digit',
@@ -1267,6 +1574,48 @@
             const element = document.getElementById(elementId);
             element.style.display = 'none';
         }
+
+        function showToast(message, type = 'info') {
+            // Criar toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#667eea'};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-weight: 600;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        // Adicionar estilos para animações de toast
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
