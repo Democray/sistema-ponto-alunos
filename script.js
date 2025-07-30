@@ -48,136 +48,13 @@ function initializeApp() {
     // Admin nav
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const section = e.currentTarget.dataset.section;
+            const section = e.target.dataset.section;
             showAdminSection(section);
         });
     });
     
-    // Tabs de usuários
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tab = e.currentTarget.dataset.tab;
-            showUsersTab(tab);
-        });
-    });
-    
-    // Modais
-    setupModals();
-    
-    // Filtros
-    document.getElementById('aplicarFiltros').addEventListener('click', aplicarFiltros);
-    document.getElementById('gerarRelatorioHoras').addEventListener('click', gerarRelatorioHoras);
-    
-    // Verificar sessão salva
-    const savedUser = sessionStorage.getItem('currentUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        showMainSystem();
-    } else {
-        showLoginScreen();
-    }
-}
-
-// Setup dos modais
-function setupModals() {
-    // Modal de edição
-    document.getElementById('closeEditModal').addEventListener('click', hideEditModal);
-    document.getElementById('cancelEditBtn').addEventListener('click', hideEditModal);
-    document.getElementById('saveEditBtn').addEventListener('click', saveEditRegistro);
-    
-    // Modal de adicionar usuário
-    document.getElementById('addUserBtn').addEventListener('click', showAddUserModal);
-    document.getElementById('closeAddUserModal').addEventListener('click', hideAddUserModal);
-    document.getElementById('cancelAddUserBtn').addEventListener('click', hideAddUserModal);
-    document.getElementById('saveAddUserBtn').addEventListener('click', saveAddUser);
-}
-
-// === NAVEGAÇÃO ENTRE TELAS ===
-
-// Mostrar tela de login
-function showLoginScreen() {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('registerScreen').style.display = 'none';
-    document.getElementById('mainSystem').style.display = 'none';
-    document.getElementById('username').focus();
-}
-
-// Mostrar tela de cadastro
-function showRegisterScreen() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('registerScreen').style.display = 'flex';
-    document.getElementById('mainSystem').style.display = 'none';
-    document.getElementById('regNome').focus();
-}
-
-// Mostrar sistema principal
-function showMainSystem() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('registerScreen').style.display = 'none';
-    document.getElementById('mainSystem').style.display = 'block';
-    
-    // Configurar interface baseada no tipo de usuário
-    if (currentUser.tipo === 'admin') {
-        showAdminPanel();
-    } else {
-        showFuncionarioPanel();
-    }
-    
     // Iniciar relógio
     startClock();
-}
-
-// Mostrar painel do funcionário
-function showFuncionarioPanel() {
-    document.getElementById('funcionarioPanel').style.display = 'block';
-    document.getElementById('adminPanel').style.display = 'none';
-    document.getElementById('systemTitle').textContent = 'Sistema de Ponto';
-    document.getElementById('userGreeting').textContent = `Olá, ${currentUser.nome}`;
-    
-    loadFuncionarioData();
-}
-
-// Mostrar painel do administrador
-function showAdminPanel() {
-    document.getElementById('funcionarioPanel').style.display = 'none';
-    document.getElementById('adminPanel').style.display = 'block';
-    document.getElementById('systemTitle').textContent = 'Painel Administrativo';
-    document.getElementById('userGreeting').textContent = `Olá, Administrador`;
-    
-    showAdminSection('pendentes');
-    loadUsuariosForFilter();
-}
-
-// === RELÓGIO ===
-
-// Iniciar relógio
-function startClock() {
-    updateClock();
-    timeInterval = setInterval(updateClock, 1000);
-}
-
-// Atualizar relógio
-function updateClock() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('pt-BR', {
-        timeZone: CONFIG.timezone,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    const dateString = now.toLocaleDateString('pt-BR', {
-        timeZone: CONFIG.timezone,
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-    
-    const timeElement = document.getElementById('currentTime');
-    const dateElement = document.getElementById('currentDate');
-    
-    if (timeElement) timeElement.textContent = timeString;
-    if (dateElement) dateElement.textContent = dateString;
 }
 
 // === AUTENTICAÇÃO ===
@@ -186,12 +63,8 @@ function updateClock() {
 async function handleLogin(e) {
     e.preventDefault();
     
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const errorElement = document.getElementById('loginError');
-    
-    // Limpar erro anterior
-    errorElement.style.display = 'none';
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
     
     if (!username || !password) {
         showError('Preencha todos os campos');
@@ -200,57 +73,54 @@ async function handleLogin(e) {
     
     try {
         // Buscar usuário no Supabase
-        const { data: users, error } = await supabase
+        const { data: user, error } = await supabase
             .from('users')
             .select('*')
             .eq('username', username)
             .eq('ativo', true)
             .single();
             
-        if (error || !users) {
+        if (error || !user) {
             showError('Usuário não encontrado ou inativo');
             return;
         }
         
-        // Verificar senha (simplificada)
+        // Verificar senha
         if (PASSWORDS[username] !== password) {
             showError('Senha incorreta');
             return;
         }
         
         // Login bem-sucedido
-        currentUser = users;
-        sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+        currentUser = user;
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
         
-        showMainSystem();
         showSuccess('Login realizado com sucesso!');
+        
+        // Redirecionar baseado no tipo
+        if (user.tipo === 'admin') {
+            showAdminDashboard();
+        } else {
+            showFuncionarioDashboard();
+        }
         
     } catch (error) {
         console.error('Erro no login:', error);
-        showError('Erro de conexão. Tente novamente.');
+        showError('Erro interno do sistema');
     }
 }
 
-// Cadastro
+// Registro
 async function handleRegister(e) {
     e.preventDefault();
     
-    const nome = document.getElementById('regNome').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const username = document.getElementById('regUsername').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const errorElement = document.getElementById('registerError');
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const nome = document.getElementById('registerNome').value.trim();
+    const email = document.getElementById('registerEmail').value.trim();
     
-    // Limpar erro anterior
-    errorElement.style.display = 'none';
-    
-    if (!nome || !email || !username || !password) {
-        showRegisterError('Preencha todos os campos');
-        return;
-    }
-    
-    if (password.length < 3) {
-        showRegisterError('Senha deve ter pelo menos 3 caracteres');
+    if (!username || !password || !nome || !email) {
+        showError('Preencha todos os campos');
         return;
     }
     
@@ -263,12 +133,12 @@ async function handleRegister(e) {
             .single();
             
         if (existingUser) {
-            showRegisterError('Nome de usuário já existe');
+            showError('Nome de usuário já existe');
             return;
         }
         
-        // Criar usuário (pendente de aprovação)
-        const { data, error } = await supabase
+        // Criar novo usuário
+        const { data: newUser, error } = await supabase
             .from('users')
             .insert({
                 username: username,
@@ -290,8 +160,8 @@ async function handleRegister(e) {
         showLoginScreen();
         
     } catch (error) {
-        console.error('Erro no cadastro:', error);
-        showRegisterError('Erro ao criar conta. Tente novamente.');
+        console.error('Erro no registro:', error);
+        showError('Erro ao criar conta');
     }
 }
 
@@ -299,190 +169,177 @@ async function handleRegister(e) {
 function handleLogout() {
     currentUser = null;
     sessionStorage.removeItem('currentUser');
-    
-    if (timeInterval) {
-        clearInterval(timeInterval);
-        timeInterval = null;
-    }
-    
     showLoginScreen();
-    showSuccess('Logout realizado com sucesso!');
 }
 
-// === REGISTRO DE PONTO ===
+// === NAVEGAÇÃO ===
+
+// Mostrar tela de login
+function showLoginScreen() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('registerScreen').style.display = 'none';
+    document.getElementById('funcionarioScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'none';
+    clearMessages();
+}
+
+// Mostrar tela de registro
+function showRegisterScreen() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('registerScreen').style.display = 'flex';
+    document.getElementById('funcionarioScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'none';
+    clearMessages();
+}
+
+// Mostrar dashboard do funcionário
+function showFuncionarioDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('registerScreen').style.display = 'none';
+    document.getElementById('funcionarioScreen').style.display = 'block';
+    document.getElementById('adminScreen').style.display = 'none';
+    
+    document.getElementById('funcionarioNome').textContent = currentUser.nome;
+    loadFuncionarioData();
+}
+
+// Mostrar dashboard do admin
+function showAdminDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('registerScreen').style.display = 'none';
+    document.getElementById('funcionarioScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+    
+    document.getElementById('adminNome').textContent = currentUser.nome;
+    showAdminSection('pontos');
+}
+
+// === FUNCIONÁRIO ===
+
+// Carregar dados do funcionário
+async function loadFuncionarioData() {
+    await loadMeusRegistros();
+    await checkUltimoPonto();
+}
+
+// Verificar último ponto
+async function checkUltimoPonto() {
+    try {
+        const hoje = new Date().toISOString().split('T')[0];
+        
+        const { data: registros, error } = await supabase
+            .from('registros_ponto')
+            .select('*')
+            .eq('funcionario_id', currentUser.id)
+            .eq('data', hoje)
+            .order('entrada', { ascending: false })
+            .limit(1);
+            
+        if (error) throw error;
+        
+        const ultimoRegistro = registros?.[0];
+        const pontoBtn = document.getElementById('baterPontoBtn');
+        
+        if (!ultimoRegistro || ultimoRegistro.saida) {
+            pontoBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Registrar Entrada';
+            pontoBtn.className = 'btn btn-success btn-lg';
+        } else {
+            pontoBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Registrar Saída';
+            pontoBtn.className = 'btn btn-danger btn-lg';
+        }
+        
+    } catch (error) {
+        console.error('Erro ao verificar último ponto:', error);
+    }
+}
 
 // Mostrar modal de confirmação
 function showConfirmModal() {
-    const modal = document.getElementById('confirmModal');
-    const message = document.getElementById('confirmMessage');
-    const timeElement = document.getElementById('confirmTime');
-    
-    // Determinar tipo de ponto
-    const hoje = new Date().toLocaleDateString('en-CA', {
+    const agora = new Date();
+    const horaAtual = agora.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
         timeZone: CONFIG.timezone
     });
     
-    // Verificar se já tem entrada hoje
-    checkExistingRecord(hoje).then(registro => {
-        if (!registro || !registro.entrada) {
-            message.textContent = 'Tem certeza que deseja registrar sua ENTRADA?';
-        } else if (!registro.saida) {
-            message.textContent = 'Tem certeza que deseja registrar sua SAÍDA?';
-        } else {
-            message.textContent = 'Você já completou o ponto hoje!';
-            return;
-        }
-        
-        // Atualizar horário no modal
-        updateConfirmTime();
-        modal.style.display = 'flex';
-        
-        // Atualizar horário a cada segundo
-        window.confirmInterval = setInterval(updateConfirmTime, 1000);
-    });
+    document.getElementById('confirmTime').textContent = horaAtual;
+    document.getElementById('confirmModal').style.display = 'flex';
 }
 
-// Ocultar modal de confirmação
+// Esconder modal de confirmação
 function hideConfirmModal() {
-    const modal = document.getElementById('confirmModal');
-    modal.style.display = 'none';
-    
-    if (window.confirmInterval) {
-        clearInterval(window.confirmInterval);
-    }
-}
-
-// Atualizar horário no modal
-function updateConfirmTime() {
-    const timeElement = document.getElementById('confirmTime');
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('pt-BR', {
-        timeZone: CONFIG.timezone,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
-    timeElement.textContent = timeString;
+    document.getElementById('confirmModal').style.display = 'none';
 }
 
 // Confirmar bater ponto
 async function confirmBaterPonto() {
     hideConfirmModal();
     
-    const btn = document.getElementById('baterPontoBtn');
-    const originalText = btn.innerHTML;
-    
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-    btn.disabled = true;
+    const agora = new Date();
+    const hoje = agora.toISOString().split('T')[0];
     
     try {
-        const hoje = new Date().toLocaleDateString('en-CA', {
-            timeZone: CONFIG.timezone
-        });
-        const agora = new Date().toISOString();
+        // Verificar último registro do dia
+        const { data: registros, error: consultaError } = await supabase
+            .from('registros_ponto')
+            .select('*')
+            .eq('funcionario_id', currentUser.id)
+            .eq('data', hoje)
+            .order('entrada', { ascending: false })
+            .limit(1);
+            
+        if (consultaError) throw consultaError;
         
-        // Verificar registro existente
-        const registroExistente = await checkExistingRecord(hoje);
+        const ultimoRegistro = registros?.[0];
+        const isEntrada = !ultimoRegistro || ultimoRegistro.saida;
         
-        if (!registroExistente) {
+        if (isEntrada) {
             // Registrar entrada
-            const { data, error } = await supabase
+            const { error: insertError } = await supabase
                 .from('registros_ponto')
                 .insert({
                     funcionario_id: currentUser.id,
                     data: hoje,
-                    entrada: agora,
-                    status: 'pendente',
-                    registrado_por: currentUser.id,
-                    ip_registro: 'web'
-                })
-                .select()
-                .single();
+                    entrada: agora.toISOString(),
+                    status: 'pendente'
+                });
                 
-            if (error) throw error;
-            
+            if (insertError) throw insertError;
             showSuccess('Entrada registrada com sucesso!');
             
-        } else if (registroExistente.entrada && !registroExistente.saida) {
+        } else {
             // Registrar saída
-            const horasTrabalhadas = calcularHoras(registroExistente.entrada, agora);
-            
-            const { data, error } = await supabase
+            const { error: updateError } = await supabase
                 .from('registros_ponto')
                 .update({
-                    saida: agora,
-                    horas_trabalhadas: horasTrabalhadas
+                    saida: agora.toISOString(),
+                    status: 'pendente'
                 })
-                .eq('id', registroExistente.id)
-                .select()
-                .single();
+                .eq('id', ultimoRegistro.id);
                 
-            if (error) throw error;
-            
+            if (updateError) throw updateError;
             showSuccess('Saída registrada com sucesso!');
-        } else {
-            showError('Ponto já completo para hoje');
         }
         
-        // Recarregar dados
-        if (currentUser.tipo === 'funcionario') {
-            loadFuncionarioData();
-        } else {
-            loadPontosPendentes();
-        }
+        // Atualizar interface
+        await loadFuncionarioData();
         
     } catch (error) {
         console.error('Erro ao bater ponto:', error);
         showError('Erro ao registrar ponto');
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
     }
 }
 
-// === DADOS DO FUNCIONÁRIO ===
-
-// Carregar dados do funcionário
-async function loadFuncionarioData() {
-    await Promise.all([
-        updatePontoStatus(),
-        loadMeusRegistros()
-    ]);
-}
-
-// Atualizar status do ponto
-async function updatePontoStatus() {
-    try {
-        const hoje = new Date().toLocaleDateString('en-CA', {
-            timeZone: CONFIG.timezone
-        });
-        
-        const registro = await checkExistingRecord(hoje);
-        const statusElement = document.getElementById('pontoStatus');
-        
-        if (!registro) {
-            statusElement.innerHTML = '<p>Você ainda não bateu ponto hoje. Clique no botão para registrar sua entrada.</p>';
-        } else if (registro.entrada && !registro.saida) {
-            statusElement.innerHTML = `<p>Entrada registrada às ${formatTime(registro.entrada)}. Clique no botão para registrar sua saída.</p>`;
-        } else if (registro.entrada && registro.saida) {
-            const status = registro.status === 'pendente' ? 'aguardando aprovação' : registro.status;
-            statusElement.innerHTML = `<p>Ponto completo para hoje (${status}). Entrada: ${formatTime(registro.entrada)}, Saída: ${formatTime(registro.saida)}</p>`;
-        }
-        
-    } catch (error) {
-        console.error('Erro ao atualizar status:', error);
-    }
-}
-
-// Carregar registros do funcionário
+// Carregar meus registros
 async function loadMeusRegistros() {
     try {
         const { data: registros, error } = await supabase
             .from('registros_ponto')
-            .select('*, editado_por:users!registros_ponto_editado_por_fkey(nome)')
+            .select('*')
             .eq('funcionario_id', currentUser.id)
             .order('data', { ascending: false })
-            .limit(5);
+            .limit(10);
             
         if (error) throw error;
         
@@ -490,79 +347,77 @@ async function loadMeusRegistros() {
         
     } catch (error) {
         console.error('Erro ao carregar registros:', error);
-        document.getElementById('meusRegistros').innerHTML = '<p class="no-data">Erro ao carregar registros</p>';
+        document.getElementById('meusRegistros').innerHTML = '<p class="error">Erro ao carregar registros</p>';
     }
 }
 
-// Exibir registros do funcionário
+// Exibir meus registros
 function displayMeusRegistros(registros) {
     const container = document.getElementById('meusRegistros');
     
     if (!registros || registros.length === 0) {
-        container.innerHTML = '<p class="no-data">Nenhum registro encontrado</p>';
+        container.innerHTML = '<p class="info">Nenhum registro encontrado</p>';
         return;
     }
     
-    const html = registros.map(registro => {
-        const editadoInfo = registro.editado_em ? 
-            `<div class="registro-info">
-                <i class="fas fa-edit"></i> 
-                Editado por ${registro.editado_por?.nome || 'Admin'} em ${formatDateTime(registro.editado_em)}
-                ${registro.motivo_edicao ? `<br>Motivo: ${registro.motivo_edicao}` : ''}
-            </div>` : '';
-            
-        return `
-            <div class="registro-card ${registro.editado_em ? 'editado' : ''}">
-                ${registro.editado_em ? '<div class="edit-indicator">Editado</div>' : ''}
-                <div class="registro-header">
-                    <div>
-                        <span class="registro-data">${formatDate(registro.data)}</span>
-                        ${editadoInfo}
-                    </div>
-                    <span class="status-badge status-${registro.status}">${registro.status.toUpperCase()}</span>
-                </div>
-                <div class="registro-horarios">
-                    <div class="horario-item">
-                        <span class="label">ENTRADA</span>
-                        <span class="horario">${registro.entrada ? formatTime(registro.entrada) : '-'}</span>
-                    </div>
-                    <div class="horario-item">
-                        <span class="label">SAÍDA</span>
-                        <span class="horario">${registro.saida ? formatTime(registro.saida) : '-'}</span>
-                    </div>
-                    <div class="horario-item">
-                        <span class="label">HORAS</span>
-                        <span class="horario">${registro.horas_trabalhadas ? registro.horas_trabalhadas + 'h' : '-'}</span>
-                    </div>
-                </div>
+    const html = registros.map(registro => `
+        <div class="registro-item ${registro.status}">
+            <div class="registro-data">
+                <strong>${formatarData(registro.data)}</strong>
             </div>
-        `;
-    }).join('');
+            <div class="registro-horarios">
+                <span class="entrada">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrada: ${registro.entrada ? formatarHora(registro.entrada) : '--:--'}
+                </span>
+                <span class="saida">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Saída: ${registro.saida ? formatarHora(registro.saida) : '--:--'}
+                </span>
+            </div>
+            <div class="registro-status">
+                <span class="status-badge ${registro.status}">
+                    ${registro.status === 'aprovado' ? 'Aprovado' : 
+                      registro.status === 'rejeitado' ? 'Rejeitado' : 'Pendente'}
+                </span>
+            </div>
+        </div>
+    `).join('');
     
     container.innerHTML = html;
 }
 
-// === FUNÇÕES ADMINISTRATIVAS ===
+// === ADMINISTRADOR ===
 
 // Mostrar seção administrativa
 async function showAdminSection(section) {
-    // Atualizar navegação
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    // Remover classe ativa de todos os botões
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Adicionar classe ativa no botão selecionado
     document.querySelector(`[data-section="${section}"]`).classList.add('active');
     
-    // Mostrar seção
-    document.querySelectorAll('.admin-section').forEach(sec => sec.style.display = 'none');
-    document.getElementById(`admin${section.charAt(0).toUpperCase() + section.slice(1)}`).style.display = 'block';
+    // Ocultar todas as seções
+    document.querySelectorAll('.admin-section').forEach(sec => {
+        sec.style.display = 'none';
+    });
     
-    // Carregar dados
-    if (section === 'pendentes') {
-        await loadPontosPendentes();
-    } else if (section === 'todos') {
-        await loadTodosRegistros();
-    } else if (section === 'usuarios') {
-        await loadUsuarios();
-    } else if (section === 'relatorios') {
-        setupRelatorios();
+    // Mostrar seção selecionada
+    document.getElementById(section).style.display = 'block';
+    
+    // Carregar dados da seção
+    switch(section) {
+        case 'pontos':
+            await loadPontosPendentes();
+            break;
+        case 'registros':
+            await loadTodosRegistros();
+            break;
+        case 'usuarios':
+            await loadUsuarios();
+            break;
     }
 }
 
@@ -573,11 +428,7 @@ async function loadPontosPendentes() {
             .from('registros_ponto')
             .select(`
                 *,
-                users:funcionario_id (
-                    nome,
-                    username
-                ),
-                editado_por:users!registros_ponto_editado_por_fkey(nome)
+                users!registros_ponto_funcionario_id_fkey(nome)
             `)
             .eq('status', 'pendente')
             .order('data', { ascending: false });
@@ -587,11 +438,11 @@ async function loadPontosPendentes() {
         displayPontosPendentes(registros || []);
         
         // Atualizar contador
-        document.getElementById('pendentesCount').textContent = (registros || []).length;
+        document.getElementById('pontosCount').textContent = (registros || []).length;
         
     } catch (error) {
         console.error('Erro ao carregar pontos pendentes:', error);
-        document.getElementById('pontosPendentes').innerHTML = '<p class="no-data">Erro ao carregar pontos pendentes</p>';
+        document.getElementById('pontosPendentes').innerHTML = '<p class="error">Erro ao carregar pontos pendentes</p>';
     }
 }
 
@@ -600,274 +451,49 @@ function displayPontosPendentes(registros) {
     const container = document.getElementById('pontosPendentes');
     
     if (!registros || registros.length === 0) {
-        container.innerHTML = '<p class="no-data">Nenhum ponto pendente de aprovação</p>';
+        container.innerHTML = '<p class="info">Nenhum ponto pendente</p>';
         return;
     }
     
-    const html = registros.map(registro => {
-        const editadoInfo = registro.editado_em ? 
-            `<div class="registro-info">
-                <i class="fas fa-edit"></i> 
-                Editado por ${registro.editado_por?.nome || 'Admin'} em ${formatDateTime(registro.editado_em)}
-                ${registro.motivo_edicao ? `<br>Motivo: ${registro.motivo_edicao}` : ''}
-            </div>` : '';
-            
-        return `
-            <div class="registro-card ${registro.editado_em ? 'editado' : ''}">
-                ${registro.editado_em ? '<div class="edit-indicator">Editado</div>' : ''}
-                <div class="registro-header">
-                    <div>
-                        <span class="registro-data">${registro.users.nome} - ${formatDate(registro.data)}</span>
-                        <div class="registro-info">
-                            <i class="fas fa-user"></i> Registrado por: ${registro.users.nome}
-                            <br><i class="fas fa-globe"></i> IP: ${registro.ip_registro || 'N/A'}
-                        </div>
-                        ${editadoInfo}
-                    </div>
-                    <span class="status-badge status-${registro.status}">${registro.status.toUpperCase()}</span>
-                </div>
-                <div class="registro-horarios">
-                    <div class="horario-item">
-                        <span class="label">ENTRADA</span>
-                        <span class="horario">${registro.entrada ? formatTime(registro.entrada) : '-'}</span>
-                    </div>
-                    <div class="horario-item">
-                        <span class="label">SAÍDA</span>
-                        <span class="horario">${registro.saida ? formatTime(registro.saida) : '-'}</span>
-                    </div>
-                    <div class="horario-item">
-                        <span class="label">HORAS</span>
-                        <span class="horario">${registro.horas_trabalhadas ? registro.horas_trabalhadas + 'h' : '-'}</span>
-                    </div>
-                </div>
-                <div class="registro-actions">
-                    <button class="btn btn-info btn-sm" onclick="editarRegistro(${registro.id})">
-                        <i class="fas fa-edit"></i>
-                        Editar
-                    </button>
-                    <button class="btn btn-success btn-sm" onclick="aprovarPonto(${registro.id})">
-                        <i class="fas fa-check"></i>
-                        Aprovar
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="rejeitarPonto(${registro.id})">
-                        <i class="fas fa-times"></i>
-                        Rejeitar
-                    </button>
-                </div>
+    const html = registros.map(registro => `
+        <div class="registro-item pendente">
+            <div class="registro-funcionario">
+                <strong>${registro.users?.nome || 'Funcionário'}</strong>
             </div>
-        `;
-    }).join('');
+            <div class="registro-data">
+                ${formatarData(registro.data)}
+            </div>
+            <div class="registro-horarios">
+                <span class="entrada">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrada: ${registro.entrada ? formatarHora(registro.entrada) : '--:--'}
+                </span>
+                <span class="saida">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Saída: ${registro.saida ? formatarHora(registro.saida) : '--:--'}
+                </span>
+            </div>
+            <div class="registro-acoes">
+                <button class="btn btn-success btn-sm" onclick="aprovarPonto(${registro.id})">
+                    <i class="fas fa-check"></i> Aprovar
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="rejeitarPonto(${registro.id})">
+                    <i class="fas fa-times"></i> Rejeitar
+                </button>
+            </div>
+        </div>
+    `).join('');
     
     container.innerHTML = html;
 }
-
-// Carregar todos os registros
-async function loadTodosRegistros(filtros = {}) {
-    try {
-        let query = supabase
-            .from('registros_ponto')
-            .select(`
-                *,
-                users:funcionario_id (
-                    nome,
-                    username
-                ),
-                editado_por:users!registros_ponto_editado_por_fkey(nome)
-            `);
-            
-        // Aplicar filtros
-        if (filtros.data) {
-            query = query.eq('data', filtros.data);
-        }
-        
-        if (filtros.usuario) {
-            query = query.eq('funcionario_id', filtros.usuario);
-        }
-        
-        const { data: registros, error } = await query
-            .order('data', { ascending: false })
-            .limit(50);
-            
-        if (error) throw error;
-        
-        displayTodosRegistros(registros || []);
-        
-    } catch (error) {
-        console.error('Erro ao carregar todos os registros:', error);
-        document.getElementById('todosRegistros').innerHTML = '<p class="no-data">Erro ao carregar registros</p>';
-    }
-}
-
-// Exibir todos os registros
-function displayTodosRegistros(registros) {
-    const container = document.getElementById('todosRegistros');
-    
-    if (!registros || registros.length === 0) {
-        container.innerHTML = '<p class="no-data">Nenhum registro encontrado</p>';
-        return;
-    }
-    
-    const html = registros.map(registro => {
-        const editadoInfo = registro.editado_em ? 
-            `<div class="registro-info">
-                <i class="fas fa-edit"></i> 
-                Editado por ${registro.editado_por?.nome || 'Admin'} em ${formatDateTime(registro.editado_em)}
-                ${registro.motivo_edicao ? `<br>Motivo: ${registro.motivo_edicao}` : ''}
-            </div>` : '';
-            
-        return `
-            <div class="registro-card ${registro.editado_em ? 'editado' : ''}">
-                ${registro.editado_em ? '<div class="edit-indicator">Editado</div>' : ''}
-                <div class="registro-header">
-                    <div>
-                        <span class="registro-data">${registro.users.nome} - ${formatDate(registro.data)}</span>
-                        <div class="registro-info">
-                            <i class="fas fa-user"></i> Registrado por: ${registro.users.nome}
-                            <br><i class="fas fa-globe"></i> IP: ${registro.ip_registro || 'N/A'}
-                        </div>
-                        ${editadoInfo}
-                    </div>
-                    <span class="status-badge status-${registro.status}">${registro.status.toUpperCase()}</span>
-                </div>
-                <div class="registro-horarios">
-                    <div class="horario-item">
-                        <span class="label">ENTRADA</span>
-                        <span class="horario">${registro.entrada ? formatTime(registro.entrada) : '-'}</span>
-                    </div>
-                    <div class="horario-item">
-                        <span class="label">SAÍDA</span>
-                        <span class="horario">${registro.saida ? formatTime(registro.saida) : '-'}</span>
-                    </div>
-                    <div class="horario-item">
-                        <span class="label">HORAS</span>
-                        <span class="horario">${registro.horas_trabalhadas ? registro.horas_trabalhadas + 'h' : '-'}</span>
-                    </div>
-                </div>
-                <div class="registro-actions">
-                    <button class="btn btn-info btn-sm" onclick="editarRegistro(${registro.id})">
-                        <i class="fas fa-edit"></i>
-                        Editar
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    container.innerHTML = html;
-}
-
-// === EDIÇÃO DE REGISTROS ===
-
-// Editar registro
-async function editarRegistro(registroId) {
-    try {
-        const { data: registro, error } = await supabase
-            .from('registros_ponto')
-            .select(`
-                *,
-                users:funcionario_id (nome, username)
-            `)
-            .eq('id', registroId)
-            .single();
-            
-        if (error) throw error;
-        
-        // Preencher modal
-        document.getElementById('editRegistroId').value = registro.id;
-        document.getElementById('editData').value = registro.data;
-        document.getElementById('editUsuario').value = registro.users.nome;
-        document.getElementById('editEntrada').value = registro.entrada ? formatTimeForInput(registro.entrada) : '';
-        document.getElementById('editSaida').value = registro.saida ? formatTimeForInput(registro.saida) : '';
-        document.getElementById('editMotivo').value = '';
-        
-        showEditModal();
-        
-    } catch (error) {
-        console.error('Erro ao carregar registro:', error);
-        showError('Erro ao carregar registro');
-    }
-}
-
-// Mostrar modal de edição
-function showEditModal() {
-    document.getElementById('editModal').style.display = 'flex';
-}
-
-// Ocultar modal de edição
-function hideEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-}
-
-// Salvar edição de registro
-async function saveEditRegistro() {
-    const registroId = document.getElementById('editRegistroId').value;
-    const data = document.getElementById('editData').value;
-    const entradaTime = document.getElementById('editEntrada').value;
-    const saidaTime = document.getElementById('editSaida').value;
-    const motivo = document.getElementById('editMotivo').value.trim();
-    
-    if (!motivo) {
-        showError('Motivo da alteração é obrigatório');
-        return;
-    }
-    
-    try {
-        // Converter horários para timestamp
-        const entrada = entradaTime ? new Date(`${data}T${entradaTime}:00`).toISOString() : null;
-        const saida = saidaTime ? new Date(`${data}T${saidaTime}:00`).toISOString() : null;
-        
-        // Calcular horas trabalhadas
-        const horasTrabalhadas = entrada && saida ? calcularHoras(entrada, saida) : null;
-        
-        // Atualizar registro
-        const { error } = await supabase
-            .from('registros_ponto')
-            .update({
-                entrada: entrada,
-                saida: saida,
-                horas_trabalhadas: horasTrabalhadas,
-                editado_por: currentUser.id,
-                editado_em: new Date().toISOString(),
-                motivo_edicao: motivo
-            })
-            .eq('id', registroId);
-            
-        if (error) throw error;
-        
-        hideEditModal();
-        showSuccess('Registro editado com sucesso!');
-        
-        // Recarregar dados
-        const currentSection = document.querySelector('.nav-btn.active').dataset.section;
-        if (currentSection === 'pendentes') {
-            loadPontosPendentes();
-        } else if (currentSection === 'todos') {
-            loadTodosRegistros();
-        }
-        
-    } catch (error) {
-        console.error('Erro ao editar registro:', error);
-        showError('Erro ao editar registro');
-    }
-}
-
-// === APROVAÇÃO/REJEIÇÃO ===
 
 // Aprovar ponto
-async function aprovarPonto(registroId) {
-    if (!confirm('Tem certeza que deseja aprovar este ponto?')) {
-        return;
-    }
-    
+async function aprovarPonto(id) {
     try {
         const { error } = await supabase
             .from('registros_ponto')
-            .update({ 
-                status: 'aprovado',
-                aprovado_por: currentUser.id,
-                aprovado_em: new Date().toISOString()
-            })
-            .eq('id', registroId);
+            .update({ status: 'aprovado' })
+            .eq('id', id);
             
         if (error) throw error;
         
@@ -881,32 +507,21 @@ async function aprovarPonto(registroId) {
 }
 
 // Rejeitar ponto
-async function rejeitarPonto(registroId) {
+async function rejeitarPonto(id) {
     const motivo = prompt('Motivo da rejeição (opcional):');
     
-    if (!confirm('Tem certeza que deseja rejeitar este ponto?')) {
-        return;
-    }
-    
     try {
-        const updateData = { 
-            status: 'rejeitado',
-            aprovado_por: currentUser.id,
-            aprovado_em: new Date().toISOString()
-        };
-        
-        if (motivo) {
-            updateData.observacoes = motivo;
-        }
-        
         const { error } = await supabase
             .from('registros_ponto')
-            .update(updateData)
-            .eq('id', registroId);
+            .update({ 
+                status: 'rejeitado',
+                observacoes: motivo || 'Rejeitado pelo administrador'
+            })
+            .eq('id', id);
             
         if (error) throw error;
         
-        showSuccess('Ponto rejeitado com sucesso!');
+        showSuccess('Ponto rejeitado!');
         await loadPontosPendentes();
         
     } catch (error) {
@@ -915,602 +530,220 @@ async function rejeitarPonto(registroId) {
     }
 }
 
-// === GERENCIAMENTO DE USUÁRIOS ===
-
-// Carregar usuários
-async function loadUsuarios() {
-    await Promise.all([
-        loadUsuariosAtivos(),
-        loadUsuariosPendentes(),
-        loadUsuariosInativos()
-    ]);
-}
-
-// Carregar usuários ativos
-async function loadUsuariosAtivos() {
+// Carregar todos os registros
+async function loadTodosRegistros() {
     try {
-        const { data: usuarios, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('ativo', true)
-            .order('nome');
-            
-        if (error) throw error;
-        
-        displayUsuarios(usuarios || [], 'usuariosAtivos');
-        
-    } catch (error) {
-        console.error('Erro ao carregar usuários ativos:', error);
-    }
-}
-
-// Carregar usuários pendentes
-async function loadUsuariosPendentes() {
-    try {
-        const { data: usuarios, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('ativo', false)
-            .order('created_at', { ascending: false });
-            
-        if (error) throw error;
-        
-        displayUsuarios(usuarios || [], 'usuariosPendentes');
-        
-        // Atualizar contador
-        document.getElementById('usuariosPendentesCount').textContent = (usuarios || []).length;
-        
-    } catch (error) {
-        console.error('Erro ao carregar usuários pendentes:', error);
-    }
-}
-
-// Carregar usuários inativos
-async function loadUsuariosInativos() {
-    try {
-        const { data: usuarios, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('ativo', false)
-            .order('nome');
-            
-        if (error) throw error;
-        
-        displayUsuarios(usuarios || [], 'usuariosInativos');
-        
-    } catch (error) {
-        console.error('Erro ao carregar usuários inativos:', error);
-    }
-}
-
-// Exibir usuários
-function displayUsuarios(usuarios, containerId) {
-    const container = document.getElementById(containerId);
-    
-    if (!usuarios || usuarios.length === 0) {
-        container.innerHTML = '<p class="no-data">Nenhum usuário encontrado</p>';
-        return;
-    }
-    
-    const html = usuarios.map(usuario => {
-        const statusClass = usuario.ativo ? 'ativo' : 'pendente';
-        const actions = getUsuarioActions(usuario);
-        
-        return `
-            <div class="user-card ${statusClass}">
-                <div class="user-header">
-                    <div>
-                        <div class="user-name">
-                            <span class="status-indicator ${statusClass}"></span>
-                            ${usuario.nome}
-                        </div>
-                        <div class="user-info">
-                            <i class="fas fa-user"></i> ${usuario.username} | 
-                            <i class="fas fa-envelope"></i> ${usuario.email} | 
-                            <i class="fas fa-shield-alt"></i> ${usuario.tipo}
-                        </div>
-                        <div class="user-info">
-                            <i class="fas fa-calendar"></i> Criado em: ${formatDateTime(usuario.created_at)}
-                        </div>
-                    </div>
-                </div>
-                <div class="user-actions">
-                    ${actions}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    container.innerHTML = html;
-}
-
-// Obter ações do usuário
-function getUsuarioActions(usuario) {
-    if (usuario.username === 'admin') {
-        return '<span class="text-muted">Usuário administrador</span>';
-    }
-    
-    let actions = [];
-    
-    if (!usuario.ativo) {
-        actions.push(`
-            <button class="btn btn-success btn-sm" onclick="aprovarUsuario(${usuario.id})">
-                <i class="fas fa-check"></i>
-                Aprovar
-            </button>
-        `);
-        actions.push(`
-            <button class="btn btn-danger btn-sm" onclick="rejeitarUsuario(${usuario.id})">
-                <i class="fas fa-times"></i>
-                Rejeitar
-            </button>
-        `);
-    } else {
-        actions.push(`
-            <button class="btn btn-warning btn-sm" onclick="desativarUsuario(${usuario.id})">
-                <i class="fas fa-ban"></i>
-                Desativar
-            </button>
-        `);
-    }
-    
-    return actions.join('');
-}
-
-// Mostrar tab de usuários
-function showUsersTab(tab) {
-    // Atualizar tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-    
-    // Mostrar container
-    document.querySelectorAll('.users-container').forEach(container => container.style.display = 'none');
-    document.getElementById(`usuarios${tab.charAt(0).toUpperCase() + tab.slice(1)}`).style.display = 'block';
-}
-
-// Aprovar usuário
-async function aprovarUsuario(usuarioId) {
-    if (!confirm('Tem certeza que deseja aprovar este usuário?')) {
-        return;
-    }
-    
-    try {
-        const { error } = await supabase
-            .from('users')
-            .update({ 
-                ativo: true,
-                aprovado_por: currentUser.id,
-                aprovado_em: new Date().toISOString()
-            })
-            .eq('id', usuarioId);
-            
-        if (error) throw error;
-        
-        showSuccess('Usuário aprovado com sucesso!');
-        await loadUsuarios();
-        
-    } catch (error) {
-        console.error('Erro ao aprovar usuário:', error);
-        showError('Erro ao aprovar usuário');
-    }
-}
-
-// Rejeitar usuário
-async function rejeitarUsuario(usuarioId) {
-    if (!confirm('Tem certeza que deseja rejeitar este usuário? Ele será removido do sistema.')) {
-        return;
-    }
-    
-    try {
-        const { error } = await supabase
-            .from('users')
-            .delete()
-            .eq('id', usuarioId);
-            
-        if (error) throw error;
-        
-        showSuccess('Usuário rejeitado e removido do sistema!');
-        await loadUsuarios();
-        
-    } catch (error) {
-        console.error('Erro ao rejeitar usuário:', error);
-        showError('Erro ao rejeitar usuário');
-    }
-}
-
-// Desativar usuário
-async function desativarUsuario(usuarioId) {
-    if (!confirm('Tem certeza que deseja desativar este usuário?')) {
-        return;
-    }
-    
-    try {
-        const { error } = await supabase
-            .from('users')
-            .update({ ativo: false })
-            .eq('id', usuarioId);
-            
-        if (error) throw error;
-        
-        showSuccess('Usuário desativado com sucesso!');
-        await loadUsuarios();
-        
-    } catch (error) {
-        console.error('Erro ao desativar usuário:', error);
-        showError('Erro ao desativar usuário');
-    }
-}
-
-// === ADICIONAR USUÁRIO ===
-
-// Mostrar modal de adicionar usuário
-function showAddUserModal() {
-    document.getElementById('addUserModal').style.display = 'flex';
-    document.getElementById('addUserNome').focus();
-}
-
-// Ocultar modal de adicionar usuário
-function hideAddUserModal() {
-    document.getElementById('addUserModal').style.display = 'none';
-    document.getElementById('addUserForm').reset();
-}
-
-// Salvar novo usuário
-async function saveAddUser() {
-    const nome = document.getElementById('addUserNome').value.trim();
-    const email = document.getElementById('addUserEmail').value.trim();
-    const username = document.getElementById('addUserUsername').value.trim();
-    const password = document.getElementById('addUserPassword').value;
-    const tipo = document.getElementById('addUserTipo').value;
-    
-    if (!nome || !email || !username || !password) {
-        showError('Preencha todos os campos');
-        return;
-    }
-    
-    if (password.length < 3) {
-        showError('Senha deve ter pelo menos 3 caracteres');
-        return;
-    }
-    
-    try {
-        // Verificar se usuário já existe
-        const { data: existingUser } = await supabase
-            .from('users')
-            .select('username')
-            .eq('username', username)
-            .single();
-            
-        if (existingUser) {
-            showError('Nome de usuário já existe');
-            return;
-        }
-        
-        // Criar usuário
-        const { data, error } = await supabase
-            .from('users')
-            .insert({
-                username: username,
-                password_hash: `temp_${password}`,
-                nome: nome,
-                email: email,
-                tipo: tipo,
-                ativo: true,
-                criado_por: currentUser.id
-            })
-            .select()
-            .single();
-            
-        if (error) throw error;
-        
-        // Adicionar à lista de senhas
-        PASSWORDS[username] = password;
-        
-        hideAddUserModal();
-        showSuccess('Usuário criado com sucesso!');
-        await loadUsuarios();
-        
-    } catch (error) {
-        console.error('Erro ao criar usuário:', error);
-        showError('Erro ao criar usuário');
-    }
-}
-
-// === FILTROS E RELATÓRIOS ===
-
-// Carregar usuários para filtro
-async function loadUsuariosForFilter() {
-    try {
-        const { data: usuarios, error } = await supabase
-            .from('users')
-            .select('id, nome')
-            .eq('ativo', true)
-            .eq('tipo', 'funcionario')
-            .order('nome');
-            
-        if (error) throw error;
-        
-        const select = document.getElementById('filtroUsuario');
-        select.innerHTML = '<option value="">Todos os usuários</option>';
-        
-        usuarios.forEach(usuario => {
-            select.innerHTML += `<option value="${usuario.id}">${usuario.nome}</option>`;
-        });
-        
-    } catch (error) {
-        console.error('Erro ao carregar usuários para filtro:', error);
-    }
-}
-
-// Aplicar filtros
-function aplicarFiltros() {
-    const data = document.getElementById('filtroData').value;
-    const usuario = document.getElementById('filtroUsuario').value;
-    
-    const filtros = {};
-    if (data) filtros.data = data;
-    if (usuario) filtros.usuario = parseInt(usuario);
-    
-    loadTodosRegistros(filtros);
-}
-
-// Setup relatórios
-function setupRelatorios() {
-    // Definir mês atual como padrão
-    const hoje = new Date();
-    const mesAtual = hoje.toISOString().slice(0, 7);
-    document.getElementById('relatorioMes').value = mesAtual;
-}
-
-// Gerar relatório de horas
-async function gerarRelatorioHoras() {
-    const mes = document.getElementById('relatorioMes').value;
-    
-    if (!mes) {
-        showError('Selecione um mês');
-        return;
-    }
-    
-    try {
-        const inicioMes = `${mes}-01`;
-        const fimMes = new Date(mes + '-01');
-        fimMes.setMonth(fimMes.getMonth() + 1);
-        fimMes.setDate(0);
-        const fimMesStr = fimMes.toISOString().slice(0, 10);
-        
         const { data: registros, error } = await supabase
             .from('registros_ponto')
             .select(`
                 *,
-                users:funcionario_id (nome)
+                users!registros_ponto_funcionario_id_fkey(nome)
             `)
-            .gte('data', inicioMes)
-            .lte('data', fimMesStr)
-            .eq('status', 'aprovado')
-            .order('funcionario_id');
+            .order('data', { ascending: false })
+            .limit(50);
             
         if (error) throw error;
         
-        displayRelatorioHoras(registros || [], mes);
+        displayTodosRegistros(registros || []);
         
     } catch (error) {
-        console.error('Erro ao gerar relatório:', error);
-        showError('Erro ao gerar relatório');
+        console.error('Erro ao carregar todos os registros:', error);
+        document.getElementById('todosRegistros').innerHTML = '<p class="error">Erro ao carregar registros</p>';
     }
 }
 
-// Exibir relatório de horas
-function displayRelatorioHoras(registros, mes) {
-    const container = document.getElementById('relatorioHorasResult');
+// Exibir todos os registros
+function displayTodosRegistros(registros) {
+    const container = document.getElementById('todosRegistros');
     
     if (!registros || registros.length === 0) {
-        container.innerHTML = '<p class="no-data">Nenhum registro encontrado para este período</p>';
+        container.innerHTML = '<p class="info">Nenhum registro encontrado</p>';
         return;
     }
     
-    // Agrupar por usuário
-    const usuariosHoras = {};
-    
-    registros.forEach(registro => {
-        const userId = registro.funcionario_id;
-        const userName = registro.users.nome;
-        
-        if (!usuariosHoras[userId]) {
-            usuariosHoras[userId] = {
-                nome: userName,
-                totalHoras: 0,
-                diasTrabalhados: 0,
-                registros: []
-            };
-        }
-        
-        if (registro.horas_trabalhadas) {
-            usuariosHoras[userId].totalHoras += parseFloat(registro.horas_trabalhadas);
-            usuariosHoras[userId].diasTrabalhados++;
-        }
-        
-        usuariosHoras[userId].registros.push(registro);
-    });
-    
-    // Gerar HTML do relatório
-    let html = `
-        <h4>Relatório de Horas - ${formatMonth(mes)}</h4>
-        <table class="relatorio-table">
-            <thead>
-                <tr>
-                    <th>Funcionário</th>
-                    <th>Total de Horas</th>
-                    <th>Dias Trabalhados</th>
-                    <th>Média Diária</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-    
-    Object.values(usuariosHoras).forEach(usuario => {
-        const mediaDiaria = usuario.diasTrabalhados > 0 ? 
-            (usuario.totalHoras / usuario.diasTrabalhados).toFixed(2) : '0.00';
-            
-        html += `
-            <tr>
-                <td>${usuario.nome}</td>
-                <td>${usuario.totalHoras.toFixed(2)}h</td>
-                <td>${usuario.diasTrabalhados}</td>
-                <td>${mediaDiaria}h</td>
-            </tr>
-        `;
-    });
-    
-    html += '</tbody></table>';
+    const html = registros.map(registro => `
+        <div class="registro-item ${registro.status}">
+            <div class="registro-funcionario">
+                <strong>${registro.users?.nome || 'Funcionário'}</strong>
+            </div>
+            <div class="registro-data">
+                ${formatarData(registro.data)}
+            </div>
+            <div class="registro-horarios">
+                <span class="entrada">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrada: ${registro.entrada ? formatarHora(registro.entrada) : '--:--'}
+                </span>
+                <span class="saida">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Saída: ${registro.saida ? formatarHora(registro.saida) : '--:--'}
+                </span>
+            </div>
+            <div class="registro-status">
+                <span class="status-badge ${registro.status}">
+                    ${registro.status === 'aprovado' ? 'Aprovado' : 
+                      registro.status === 'rejeitado' ? 'Rejeitado' : 'Pendente'}
+                </span>
+            </div>
+        </div>
+    `).join('');
     
     container.innerHTML = html;
 }
 
-// === UTILITÁRIOS ===
-
-// Verificar registro existente
-async function checkExistingRecord(data) {
+// Carregar usuários (CORRIGIDO - só mostra usuários ativos)
+async function loadUsuarios() {
     try {
-        const { data: registro, error } = await supabase
-            .from('registros_ponto')
+        const { data: usuarios, error } = await supabase
+            .from('users')
             .select('*')
-            .eq('funcionario_id', currentUser.id)
-            .eq('data', data)
-            .single();
+            .eq('ativo', true) // SÓ USUÁRIOS ATIVOS
+            .order('nome');
             
-        return error ? null : registro;
+        if (error) throw error;
+        
+        displayUsuarios(usuarios || []);
+        
     } catch (error) {
-        return null;
+        console.error('Erro ao carregar usuários:', error);
+        document.getElementById('listaUsuarios').innerHTML = '<p class="error">Erro ao carregar usuários</p>';
     }
 }
 
-// Calcular horas trabalhadas
-function calcularHoras(entrada, saida) {
-    if (!entrada || !saida) return 0;
+// Exibir usuários
+function displayUsuarios(usuarios) {
+    const container = document.getElementById('listaUsuarios');
     
-    const entradaDate = new Date(entrada);
-    const saidaDate = new Date(saida);
-    
-    const diffMs = saidaDate - entradaDate;
-    let horas = diffMs / (1000 * 60 * 60);
-    
-    // Desconto de almoço se trabalhou mais de 6 horas
-    if (horas > CONFIG.horasParaDesconto) {
-        horas -= 1;
+    if (!usuarios || usuarios.length === 0) {
+        container.innerHTML = '<p class="info">Nenhum usuário ativo encontrado</p>';
+        return;
     }
     
-    return Math.max(0, Math.round(horas * 100) / 100);
+    const html = usuarios.map(usuario => `
+        <div class="usuario-item">
+            <div class="usuario-info">
+                <div class="usuario-nome">
+                    <strong>${usuario.nome}</strong>
+                    <span class="usuario-tipo">${usuario.tipo}</span>
+                </div>
+                <div class="usuario-detalhes">
+                    <span>Usuário: ${usuario.username}</span>
+                    <span>Email: ${usuario.email}</span>
+                </div>
+            </div>
+            <div class="usuario-acoes">
+                ${usuario.tipo !== 'admin' ? `
+                    <button class="btn btn-danger btn-sm" onclick="removerUsuario(${usuario.id}, '${usuario.nome}')">
+                        <i class="fas fa-trash"></i> Remover
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+// Remover usuário (CORRIGIDO - remove completamente)
+async function removerUsuario(usuarioId, nomeUsuario) {
+    if (!confirm(`Tem certeza que deseja REMOVER PERMANENTEMENTE o usuário "${nomeUsuario}"?\n\nEsta ação não pode ser desfeita!`)) {
+        return;
+    }
+    
+    try {
+        // Primeiro, deletar todos os registros de ponto do usuário
+        const { error: deleteRegistrosError } = await supabase
+            .from('registros_ponto')
+            .delete()
+            .eq('funcionario_id', usuarioId);
+            
+        if (deleteRegistrosError) {
+            console.error('Erro ao deletar registros:', deleteRegistrosError);
+            // Continua mesmo se der erro nos registros
+        }
+        
+        // Depois, deletar o usuário
+        const { error: deleteUserError } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', usuarioId);
+            
+        if (deleteUserError) throw deleteUserError;
+        
+        showSuccess(`Usuário "${nomeUsuario}" removido permanentemente!`);
+        await loadUsuarios();
+        
+    } catch (error) {
+        console.error('Erro ao remover usuário:', error);
+        showError('Erro ao remover usuário');
+    }
+}
+
+// === UTILITÁRIOS ===
+
+// Iniciar relógio
+function startClock() {
+    updateClock();
+    timeInterval = setInterval(updateClock, 1000);
+}
+
+// Atualizar relógio
+function updateClock() {
+    const agora = new Date();
+    const horaAtual = agora.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        timeZone: CONFIG.timezone
+    });
+    
+    const clockElements = document.querySelectorAll('.current-time');
+    clockElements.forEach(el => {
+        if (el) el.textContent = horaAtual;
+    });
 }
 
 // Formatar data
-function formatDate(dateString) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('pt-BR');
+function formatarData(data) {
+    return new Date(data + 'T00:00:00').toLocaleDateString('pt-BR');
 }
 
 // Formatar hora
-function formatTime(dateTimeString) {
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('pt-BR', {
-        timeZone: CONFIG.timezone,
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// Formatar data e hora
-function formatDateTime(dateTimeString) {
-    const date = new Date(dateTimeString);
-    return date.toLocaleString('pt-BR', {
-        timeZone: CONFIG.timezone
-    });
-}
-
-// Formatar hora para input
-function formatTimeForInput(dateTimeString) {
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString('pt-BR', {
-        timeZone: CONFIG.timezone,
+function formatarHora(datetime) {
+    return new Date(datetime).toLocaleTimeString('pt-BR', {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
-    });
-}
-
-// Formatar mês
-function formatMonth(monthString) {
-    const [year, month] = monthString.split('-');
-    const date = new Date(year, month - 1);
-    return date.toLocaleDateString('pt-BR', {
-        year: 'numeric',
-        month: 'long'
+        timeZone: CONFIG.timezone
     });
 }
 
 // Mostrar mensagem de sucesso
 function showSuccess(message) {
+    clearMessages();
     const alert = document.createElement('div');
-    alert.className = 'success-message';
+    alert.className = 'alert success';
     alert.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-    alert.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 15px 20px;
-        border-radius: 10px;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    `;
     
-    document.body.appendChild(alert);
+    const container = document.querySelector('.screen:not([style*="display: none"]) .container') || document.body;
+    container.insertBefore(alert, container.firstChild);
     
-    setTimeout(() => {
-        alert.remove();
-    }, 3000);
+    setTimeout(() => alert.remove(), 5000);
 }
 
 // Mostrar mensagem de erro
 function showError(message) {
-    const errorElement = document.getElementById('loginError');
-    if (errorElement) {
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-    } else {
-        const alert = document.createElement('div');
-        alert.className = 'error-message';
-        alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-        alert.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #dc3545;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        `;
-        
-        document.body.appendChild(alert);
-        
-        setTimeout(() => {
-            alert.remove();
-        }, 5000);
-    }
+    clearMessages();
+    const alert = document.createElement('div');
+    alert.className = 'alert error';
+    alert.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    
+    const container = document.querySelector('.screen:not([style*="display: none"]) .container') || document.body;
+    container.insertBefore(alert, container.firstChild);
+    
+    setTimeout(() => alert.remove(), 5000);
 }
 
-// Mostrar erro de cadastro
-function showRegisterError(message) {
-    const errorElement = document.getElementById('registerError');
-    errorElement.textContent = message;
-    errorElement.style.display = 'block';
+// Limpar mensagens
+function clearMessages() {
+    document.querySelectorAll('.alert').forEach(alert => alert.remove());
 }
-
