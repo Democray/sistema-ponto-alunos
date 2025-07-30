@@ -1,4 +1,4 @@
-/* Reset e Base */
+/* Reset e configurações básicas */
 * {
     margin: 0;
     padding: 0;
@@ -12,26 +12,73 @@ body {
     color: #333;
 }
 
-/* Screens */
-.screen {
-    min-height: 100vh;
+/* Tela de Loading */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    z-index: 9999;
 }
 
-/* Login Screen */
+.loading-content {
+    text-align: center;
+    color: white;
+}
+
+.loading-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+.loading-content h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    font-weight: 300;
+}
+
+.loading-content p {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Tela de Login */
+.login-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .login-container {
     background: white;
-    border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 400px;
-    text-align: center;
+    margin: 20px;
 }
 
 .login-header {
+    text-align: center;
     margin-bottom: 30px;
 }
 
@@ -42,110 +89,69 @@ body {
 }
 
 .login-header h1 {
-    font-size: 24px;
+    font-size: 28px;
+    margin-bottom: 8px;
     color: #333;
-    margin-bottom: 5px;
 }
 
 .login-header p {
     color: #666;
-    font-size: 14px;
+    font-size: 16px;
 }
 
-/* Form */
 .form-group {
     margin-bottom: 20px;
-    text-align: left;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
+    margin-bottom: 8px;
+    font-weight: 600;
     color: #333;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+.form-group input {
     width: 100%;
-    padding: 12px 15px;
+    padding: 12px 16px;
     border: 2px solid #e1e5e9;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 16px;
-    transition: border-color 0.3s;
-    font-family: inherit;
+    transition: border-color 0.3s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form-group input:focus {
     outline: none;
     border-color: #667eea;
 }
 
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-}
-
-.form-control {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-/* Buttons */
 .btn {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    background: transparent;
-}
-
-.btn-primary {
-    background: #667eea;
-    color: white;
     width: 100%;
-    justify-content: center;
-}
-
-.btn-primary:hover {
-    background: #5a67d8;
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background: #6c757d;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.btn-secondary:hover {
-    background: #5a6268;
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-success {
     background: #28a745;
-    color: white;
 }
 
-.btn-success:hover {
-    background: #218838;
+.btn-danger {
+    background: #dc3545;
 }
 
 .btn-warning {
@@ -153,151 +159,42 @@ body {
     color: #212529;
 }
 
-.btn-warning:hover {
-    background: #e0a800;
-}
-
-.btn-danger {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #c82333;
-}
-
-.btn-info {
-    background: #17a2b8;
-    color: white;
-}
-
-.btn-info:hover {
-    background: #138496;
-}
-
-.btn-large {
-    padding: 20px 40px;
-    font-size: 18px;
-    border-radius: 15px;
-}
-
 .btn-sm {
-    padding: 8px 16px;
+    padding: 6px 12px;
     font-size: 14px;
-}
-
-.btn-link {
-    background: transparent;
-    color: #667eea;
-    padding: 8px 0;
     width: auto;
-    text-decoration: none;
-    border: none;
-    font-size: 14px;
 }
 
-.btn-link:hover {
-    color: #5a67d8;
-    text-decoration: underline;
-}
-
-.btn-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: transparent;
-    border: none;
-    font-size: 18px;
-    color: #999;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-close:hover {
-    background: #f8f9fa;
-    color: #333;
-}
-
-/* Messages */
-.error-message {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 15px;
-    border: 1px solid #f5c6cb;
-}
-
-.success-message {
-    background: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 15px;
-    border: 1px solid #c3e6cb;
-}
-
-/* Login Actions */
-.login-actions {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e1e5e9;
-}
-
-/* Login Footer */
 .login-footer {
     margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #e1e5e9;
-    font-size: 12px;
+    text-align: center;
+    font-size: 14px;
     color: #666;
 }
 
-/* Main System */
-#mainSystem {
-    background: #f8f9fa;
-    align-items: stretch;
-    justify-content: stretch;
+/* Sistema Principal */
+.main-system {
+    display: none;
+    min-height: 100vh;
+    padding: 20px;
 }
 
-/* Header */
-.header {
+.system-header {
     background: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-}
-
-.header-content {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 30px;
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #333;
-}
-
-.logo i {
-    color: #667eea;
+.system-title {
     font-size: 24px;
+    color: #333;
 }
 
 .user-info {
@@ -306,585 +203,347 @@ body {
     gap: 15px;
 }
 
-/* Panel */
-.panel {
-    width: 100%;
-    padding-top: 80px;
-}
-
-/* Main Content */
-.main-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 30px;
-}
-
-/* Clock Section */
-.clock-section {
-    text-align: center;
-    margin-bottom: 40px;
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
 .current-time {
-    font-size: 48px;
-    font-weight: 300;
-    color: #667eea;
-    margin-bottom: 10px;
-}
-
-.current-date {
     font-size: 18px;
-    color: #666;
+    font-weight: 600;
+    color: #667eea;
 }
 
-/* Ponto Section */
+.logout-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
+/* Painel Funcionário */
+.funcionario-panel {
+    display: none;
+}
+
 .ponto-section {
     background: white;
     padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    margin-bottom: 20px;
     text-align: center;
-    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .ponto-section h2 {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     color: #333;
 }
 
-.ponto-status {
-    margin-bottom: 30px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 10px;
+.ponto-section p {
     color: #666;
-}
-
-/* Registros Section */
-.registros-section {
-    background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.registros-section h2 {
     margin-bottom: 20px;
-    color: #333;
 }
 
-/* Admin Nav */
-.admin-nav {
-    display: flex;
-    background: white;
-    margin: 20px 30px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.nav-btn {
-    flex: 1;
-    padding: 20px;
-    background: transparent;
+.btn-ponto {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
     border: none;
+    padding: 20px 40px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
     cursor: pointer;
-    display: flex;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 10px;
-    font-size: 16px;
-    color: #666;
-    transition: all 0.3s;
-    position: relative;
 }
 
-.nav-btn:hover {
+.btn-ponto:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+/* Painel Admin */
+.admin-panel {
+    display: none;
+}
+
+.admin-nav {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav button {
+    padding: 10px 20px;
+    border: none;
     background: #f8f9fa;
+    color: #333;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
 }
 
-.nav-btn.active {
+.admin-nav button:hover {
+    background: #e9ecef;
+}
+
+.admin-nav button.active {
     background: #667eea;
     color: white;
 }
 
-.badge {
-    background: #dc3545;
-    color: white;
-    border-radius: 50%;
-    padding: 4px 8px;
-    font-size: 12px;
-    min-width: 20px;
-    text-align: center;
-}
-
-.nav-btn.active .badge {
-    background: rgba(255,255,255,0.3);
-}
-
-/* Admin Content */
-.admin-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 30px 30px;
-}
-
 .admin-section {
     background: white;
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-.admin-section h2 {
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.section-filters {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    align-items: center;
-}
-
-/* Registros Container */
-.registros-container {
-    display: grid;
-    gap: 15px;
-}
-
-.registro-card {
-    background: #f8f9fa;
     padding: 20px;
-    border-radius: 15px;
-    border-left: 4px solid #667eea;
-    position: relative;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.registro-card.editado {
-    border-left-color: #ffc107;
-}
-
-.registro-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.registro-data {
-    font-weight: 600;
-    color: #333;
-}
-
-.registro-info {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
-}
-
-.status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-}
-
-.status-pendente {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.status-aprovado {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-rejeitado {
-    background: #f8d7da;
-    color: #721c24;
-}
-
-.registro-horarios {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.horario-item {
-    text-align: center;
-}
-
-.horario-item .label {
-    display: block;
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 5px;
-}
-
-.horario-item .horario {
-    display: block;
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-}
-
-.registro-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.registro-historico {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #dee2e6;
-    font-size: 12px;
-    color: #666;
-}
-
-.historico-item {
-    margin-bottom: 5px;
-}
-
-/* Users Management */
-.users-tabs {
-    display: flex;
+.admin-section h3 {
     margin-bottom: 20px;
-    border-bottom: 1px solid #dee2e6;
+    color: #333;
 }
 
-.tab-btn {
-    padding: 12px 20px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: #666;
-    border-bottom: 2px solid transparent;
-    transition: all 0.3s;
-}
-
-.tab-btn:hover {
-    color: #667eea;
-}
-
-.tab-btn.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
-}
-
-.users-container {
-    display: grid;
-    gap: 15px;
-}
-
-.user-card {
+/* Registros */
+.registro-item {
     background: #f8f9fa;
-    padding: 20px;
-    border-radius: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: center;
+}
+
+.registro-item.pendente {
+    border-left: 4px solid #ffc107;
+}
+
+.registro-item.aprovado {
     border-left: 4px solid #28a745;
 }
 
-.user-card.pendente {
-    border-left-color: #ffc107;
+.registro-item.rejeitado {
+    border-left: 4px solid #dc3545;
 }
 
-.user-card.inativo {
-    border-left-color: #6c757d;
-}
-
-.user-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.user-name {
-    font-weight: 600;
+.registro-funcionario strong {
     color: #333;
-    font-size: 18px;
+    font-size: 16px;
 }
 
-.user-info {
+.registro-data {
     color: #666;
     font-size: 14px;
 }
 
-.user-actions {
+.registro-horarios {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 15px;
+    flex-direction: column;
+    gap: 5px;
 }
 
-/* Relatórios */
-.relatorios-grid {
-    display: grid;
-    gap: 20px;
-}
-
-.relatorio-card {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 15px;
-    border-left: 4px solid #17a2b8;
-}
-
-.relatorio-card h3 {
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.relatorio-filters {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    align-items: center;
-}
-
-.relatorio-result {
-    min-height: 100px;
-}
-
-.relatorio-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-.relatorio-table th,
-.relatorio-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.relatorio-table th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #333;
-}
-
-/* Modal */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    position: relative;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-large {
-    max-width: 600px;
-}
-
-.modal-header {
-    margin-bottom: 20px;
-}
-
-.modal-header h3 {
-    color: #333;
-    margin: 0;
-}
-
-.modal-body {
-    text-align: left;
-    margin-bottom: 30px;
-}
-
-.confirm-content {
-    text-align: center;
-}
-
-.confirm-icon {
-    font-size: 48px;
-    color: #667eea;
-    margin-bottom: 15px;
-}
-
-.current-time-confirm {
-    font-size: 24px;
-    font-weight: 600;
-    color: #667eea;
-    margin-top: 15px;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .login-container {
-        margin: 20px;
-        padding: 30px 20px;
-    }
-    
-    .header-content {
-        padding: 15px 20px;
-    }
-    
-    .main-content {
-        padding: 20px;
-    }
-    
-    .admin-nav {
-        margin: 20px;
-        flex-direction: column;
-    }
-    
-    .admin-content {
-        padding: 0 20px 20px;
-    }
-    
-    .current-time {
-        font-size: 36px;
-    }
-    
-    .registro-horarios {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .modal-actions {
-        flex-direction: column;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .section-filters {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .relatorio-filters {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .user-actions {
-        justify-content: center;
-    }
-    
-    .registro-actions {
-        justify-content: center;
-    }
-}
-
-/* Loading Animation */
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-.loading {
-    animation: pulse 1.5s infinite;
-}
-
-/* No Data */
-.no-data {
-    text-align: center;
+.registro-horarios span {
+    font-size: 14px;
     color: #666;
-    padding: 40px 20px;
-    font-style: italic;
 }
 
-/* Utilities */
-.text-center { text-align: center; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
-.mb-20 { margin-bottom: 20px; }
-.mt-20 { margin-top: 20px; }
-
-/* Status Indicators */
-.status-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+.registro-horarios i {
     margin-right: 5px;
+    width: 12px;
 }
 
-.status-indicator.ativo {
-    background: #28a745;
+.registro-acoes {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
 }
 
-.status-indicator.inativo {
-    background: #6c757d;
-}
-
-.status-indicator.pendente {
-    background: #ffc107;
-}
-
-/* Edit Indicator */
-.edit-indicator {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ffc107;
-    color: white;
+.status-badge {
     padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 10px;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
-/* Tooltip */
-.tooltip {
-    position: relative;
-    cursor: help;
+.status-badge.pendente {
+    background: #fff3cd;
+    color: #856404;
 }
 
-.tooltip:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
+.status-badge.aprovado {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.rejeitado {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Usuários */
+.usuario-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 15px;
+    align-items: center;
+}
+
+.usuario-item.ativo {
+    border-left: 4px solid #28a745;
+}
+
+.usuario-item.inativo {
+    border-left: 4px solid #dc3545;
+}
+
+.usuario-nome strong {
+    color: #333;
+    font-size: 16px;
+}
+
+.usuario-tipo {
+    background: #667eea;
     color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
+    padding: 2px 6px;
+    border-radius: 4px;
     font-size: 12px;
-    white-space: nowrap;
-    z-index: 1000;
+    margin-left: 10px;
 }
 
+.usuario-detalhes {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 5px;
+}
+
+.usuario-detalhes span {
+    font-size: 14px;
+    color: #666;
+}
+
+.usuario-acoes {
+    display: flex;
+    gap: 5px;
+}
+
+/* Alertas */
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert.info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Utilitários */
+.info {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+.error {
+    color: #dc3545;
+    font-weight: 600;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .system-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .admin-nav {
+        flex-direction: column;
+    }
+
+    .admin-nav button {
+        width: 100%;
+    }
+
+    .registro-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .registro-acoes {
+        justify-content: center;
+    }
+
+    .usuario-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .loading-icon {
+        font-size: 48px;
+    }
+    
+    .loading-content h2 {
+        font-size: 20px;
+    }
+    
+    .loading-content p {
+        font-size: 14px;
+    }
+
+    .login-container {
+        margin: 10px;
+        padding: 30px;
+    }
+
+    .btn-ponto {
+        padding: 15px 30px;
+        font-size: 16px;
+    }
+}
