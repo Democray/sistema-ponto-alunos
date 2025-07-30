@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Controle de Ponto</title>
+    <meta name="description" content="Sistema de controle de ponto com aprovação administrativa">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
+</head>
+<body>
+    <!-- Tela de Loading -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <i class="fas fa-clock loading-icon"></i>
+            <h2>Carregando Sistema</h2>
+            <p>Conectando com Supabase...</p>
+        </div>
+    </div>
+
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-screen" style="display: none;">
+        <div class="login-container">
+            <div class="login-header">
+                <i class="fas fa-clock"></i>
+                <h1>Sistema de Ponto</h1>
+                <p>Controle de horários simplificado</p>
+            </div>
+            
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p><strong>Usuários de Teste:</strong></p>
+                <p>Admin: admin / 123456</p>
+                <p>Funcionário: joao / 123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sistema Principal -->
+    <div id="mainSystem" class="main-system" style="display: none;">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-clock"></i>
+                    <span id="systemTitle">Sistema de Ponto</span>
+                </div>
+                <div class="user-info">
+                    <span id="userGreeting">Olá, Usuário</span>
+                    <button class="btn btn-secondary" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Painel do Funcionário -->
+        <div id="funcionarioPanel" class="panel" style="display: none;">
+            <main class="main-content">
+                <!-- Seção de Registro de Ponto -->
+                <section class="ponto-section">
+                    <h2>Registrar Ponto</h2>
+                    <div class="current-time" id="currentTime">--:--:--</div>
+                    <div id="pontoStatus" class="ponto-status">
+                        <p>Carregando status...</p>
+                    </div>
+                    <button id="baterPontoBtn" class="btn btn-success btn-large" onclick="handleBaterPonto()">
+                        <i class="fas fa-clock"></i>
+                        Bater Ponto
+                    </button>
+                </section>
+
+                <!-- Seção de Registros -->
+                <section class="registros-section">
+                    <h2>Meus Registros</h2>
+                    <div id="meusRegistros" class="registros-container">
+                        <p>Carregando registros...</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Painel do Administrador -->
+        <div id="adminPanel" class="panel" style="display: none;">
+            <nav class="admin-nav">
+                <button class="nav-btn active" onclick="showAdminSection('pendentes')" id="navPendentes">
+                    <i class="fas fa-clock"></i>
+                    Pontos Pendentes
+                    <span class="badge" id="pendentesCount">0</span>
+                </button>
+                <button class="nav-btn" onclick="showAdminSection('todos')" id="navTodos">
+                    <i class="fas fa-list"></i>
+                    Todos os Registros
+                </button>
+                <button class="nav-btn" onclick="showAdminSection('usuarios')" id="navUsuarios">
+                    <i class="fas fa-users"></i>
+                    Usuários
+                </button>
+            </nav>
+
+            <main class="admin-content">
+                <!-- Pontos Pendentes -->
+                <div id="adminPendentes" class="admin-section">
+                    <h2>Pontos Pendentes de Aprovação</h2>
+                    <div id="pontosPendentes" class="registros-container">
+                        <p>Carregando pontos pendentes...</p>
+                    </div>
+                </div>
+
+                <!-- Todos os Registros -->
+                <div id="adminTodos" class="admin-section" style="display: none;">
+                    <h2>Todos os Registros</h2>
+                    <div class="filters">
+                        <input type="date" id="filtroData" onchange="filtrarRegistros()">
+                        <select id="filtroStatus" onchange="filtrarRegistros()">
+                            <option value="">Todos os Status</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="aprovado">Aprovado</option>
+                            <option value="rejeitado">Rejeitado</option>
+                        </select>
+                    </div>
+                    <div id="todosRegistros" class="registros-container">
+                        <p>Carregando todos os registros...</p>
+                    </div>
+                </div>
+
+                <!-- Usuários -->
+                <div id="adminUsuarios" class="admin-section" style="display: none;">
+                    <h2>Gerenciar Usuários</h2>
+                    <button class="btn btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-plus"></i>
+                        Adicionar Usuário
+                    </button>
+                    <div id="listaUsuarios" class="usuarios-container">
+                        <p>Carregando usuários...</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Ponto -->
+    <div id="confirmPontoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Registro de Ponto</h3>
+                <button class="close-btn" onclick="closeConfirmPontoModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-content">
+                    <i class="fas fa-clock confirm-icon"></i>
+                    <p id="confirmPontoMessage">Tem certeza que deseja registrar seu ponto?</p>
+                    <div class="current-time-confirm" id="currentTimeConfirm"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeConfirmPontoModal()">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmBaterPonto()">
+                    <i class="fas fa-check"></i>
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição de Ponto -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Registro de Ponto</h3>
+                <button class="close-btn" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editForm" onsubmit="handleEditPonto(event)">
+                <div class="modal-body">
+                    <input type="hidden" id="editRegistroId">
+                    
+                    <div class="form-group">
+                        <label for="editEntrada">Horário de Entrada</label>
+                        <input type="datetime-local" id="editEntrada" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editSaida">Horário de Saída</label>
+                        <input type="datetime-local" id="editSaida">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editObservacoes">Observações</label>
+                        <textarea id="editObservacoes" rows="3" placeholder="Observações sobre a edição..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Salvar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Adicionar Usuário -->
+    <div id="addUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adicionar Novo Usuário</h3>
+                <button class="close-btn" onclick="closeAddUserModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addUserForm" onsubmit="handleAddUser(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newUsername">Nome de Usuário</label>
+                        <input type="text" id="newUsername" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newNome">Nome Completo</label>
+                        <input type="text" id="newNome" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newEmail">Email</label>
+                        <input type="email" id="newEmail">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">Senha</label>
+                        <input type="password" id="newPassword" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newTipo">Tipo de Usuário</label>
+                        <select id="newTipo" required>
+                            <option value="funcionario">Funcionário</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Adicionar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
+
