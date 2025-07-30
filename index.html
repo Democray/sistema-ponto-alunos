@@ -5,11 +5,504 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Controle de Ponto</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .screen {
+            display: none;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-header {
+            margin-bottom: 30px;
+        }
+
+        .login-header i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-link {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-link:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #fcc;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #cfc;
+        }
+
+        .login-footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Sistema Principal */
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .logo i {
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .clock-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .current-time {
+            font-size: 48px;
+            font-weight: 300;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .current-date {
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .ponto-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .ponto-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .ponto-status {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .btn-large {
+            padding: 20px 40px;
+            font-size: 18px;
+            border-radius: 15px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .registros-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .registros-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .registro-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .registro-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .registro-data {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .registro-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pendente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-aprovado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejeitado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .registro-horarios {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .horario-item {
+            text-align: center;
+        }
+
+        .horario-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .horario-valor {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Admin Panel */
+        .admin-nav {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            border: 2px solid #e1e5e9;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .user-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .user-info p {
+            color: #666;
+            font-size: 14px;
+            margin: 2px 0;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 6px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            border: none;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+        }
+
+        .confirm-content {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .confirm-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .current-time-confirm {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 15px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .current-time {
+                font-size: 36px;
+            }
+
+            .registro-horarios {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .admin-nav {
+                flex-direction: column;
+            }
+
+            .user-item {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Tela de Login -->
-    <div id="loginScreen" class="screen">
+    <div id="loginScreen" class="screen active">
         <div class="login-container">
             <div class="login-header">
                 <i class="fas fa-clock"></i>
@@ -52,7 +545,7 @@
     </div>
 
     <!-- Tela de Cadastro -->
-    <div id="registerScreen" class="screen" style="display: none;">
+    <div id="registerScreen" class="screen">
         <div class="login-container">
             <div class="login-header">
                 <i class="fas fa-user-plus"></i>
@@ -94,7 +587,7 @@
     </div>
 
     <!-- Sistema Principal -->
-    <div id="mainSystem" class="screen" style="display: none;">
+    <div id="mainSystem" class="screen">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
@@ -145,97 +638,45 @@
 
         <!-- Painel do Administrador -->
         <div id="adminPanel" class="panel" style="display: none;">
-            <nav class="admin-nav">
-                <button class="nav-btn active" data-section="pendentes">
-                    <i class="fas fa-clock"></i>
-                    Pontos Pendentes
-                    <span class="badge" id="pendentesCount">0</span>
-                </button>
-                <button class="nav-btn" data-section="todos">
-                    <i class="fas fa-list"></i>
-                    Todos os Registros
-                </button>
-                <button class="nav-btn" data-section="usuarios">
-                    <i class="fas fa-users"></i>
-                    Gerenciar Usuários
-                    <span class="badge" id="usuariosPendentesCount">0</span>
-                </button>
-                <button class="nav-btn" data-section="relatorios">
-                    <i class="fas fa-chart-bar"></i>
-                    Relatórios
-                </button>
-            </nav>
+            <main class="main-content">
+                <nav class="admin-nav">
+                    <button class="nav-btn active" data-section="pendentes">
+                        <i class="fas fa-clock"></i>
+                        Pontos Pendentes
+                        <span class="badge" id="pendentesCount">0</span>
+                    </button>
+                    <button class="nav-btn" data-section="todos">
+                        <i class="fas fa-list"></i>
+                        Todos os Registros
+                    </button>
+                    <button class="nav-btn" data-section="usuarios">
+                        <i class="fas fa-users"></i>
+                        Gerenciar Usuários
+                    </button>
+                </nav>
 
-            <main class="admin-content">
-                <!-- Pontos Pendentes -->
-                <div id="adminPendentes" class="admin-section">
-                    <h2>Pontos Pendentes de Aprovação</h2>
-                    <div id="pontosPendentes" class="registros-container">
-                        <p>Carregando pontos pendentes...</p>
+                <div class="admin-content">
+                    <!-- Pontos Pendentes -->
+                    <div id="adminPendentes" class="admin-section">
+                        <h2>Pontos Pendentes de Aprovação</h2>
+                        <div id="pontosPendentes" class="registros-container">
+                            <p>Carregando pontos pendentes...</p>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Todos os Registros -->
-                <div id="adminTodos" class="admin-section" style="display: none;">
-                    <h2>Todos os Registros</h2>
-                    <div class="section-filters">
-                        <input type="date" id="filtroData" class="form-control">
-                        <select id="filtroUsuario" class="form-control">
-                            <option value="">Todos os usuários</option>
-                        </select>
-                        <button id="aplicarFiltros" class="btn btn-primary btn-sm">
-                            <i class="fas fa-filter"></i>
-                            Filtrar
-                        </button>
+                    <!-- Todos os Registros -->
+                    <div id="adminTodos" class="admin-section" style="display: none;">
+                        <h2>Todos os Registros</h2>
+                        <div id="todosRegistros" class="registros-container">
+                            <p>Carregando todos os registros...</p>
+                        </div>
                     </div>
-                    <div id="todosRegistros" class="registros-container">
-                        <p>Carregando todos os registros...</p>
-                    </div>
-                </div>
 
-                <!-- Gerenciar Usuários -->
-                <div id="adminUsuarios" class="admin-section" style="display: none;">
-                    <div class="section-header">
+                    <!-- Gerenciar Usuários -->
+                    <div id="adminUsuarios" class="admin-section" style="display: none;">
                         <h2>Gerenciar Usuários</h2>
-                        <button id="addUserBtn" class="btn btn-success">
-                            <i class="fas fa-user-plus"></i>
-                            Adicionar Usuário
-                        </button>
-                    </div>
-                    
-                    <div class="users-tabs">
-                        <button class="tab-btn active" data-tab="ativos">Usuários Ativos</button>
-                        <button class="tab-btn" data-tab="pendentes">Pendentes de Aprovação</button>
-                        <button class="tab-btn" data-tab="inativos">Inativos</button>
-                    </div>
-                    
-                    <div id="usuariosAtivos" class="users-container">
-                        <p>Carregando usuários...</p>
-                    </div>
-                    
-                    <div id="usuariosPendentes" class="users-container" style="display: none;">
-                        <p>Carregando usuários pendentes...</p>
-                    </div>
-                    
-                    <div id="usuariosInativos" class="users-container" style="display: none;">
-                        <p>Carregando usuários inativos...</p>
-                    </div>
-                </div>
-
-                <!-- Relatórios -->
-                <div id="adminRelatorios" class="admin-section" style="display: none;">
-                    <h2>Relatórios</h2>
-                    <div class="relatorios-grid">
-                        <div class="relatorio-card">
-                            <h3>Horas por Usuário</h3>
-                            <div class="relatorio-filters">
-                                <input type="month" id="relatorioMes" class="form-control">
-                                <button id="gerarRelatorioHoras" class="btn btn-primary">
-                                    <i class="fas fa-chart-bar"></i>
-                                    Gerar
-                                </button>
-                            </div>
-                            <div id="relatorioHorasResult" class="relatorio-result"></div>
+                        <div id="usuariosLista" class="users-container">
+                            <p>Carregando usuários...</p>
                         </div>
                     </div>
                 </div>
@@ -266,109 +707,566 @@
         </div>
     </div>
 
-    <!-- Modal de Edição de Registro -->
-    <div id="editModal" class="modal" style="display: none;">
-        <div class="modal-content modal-large">
-            <div class="modal-header">
-                <h3>Editar Registro de Ponto</h3>
-                <button id="closeEditModal" class="btn-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editForm">
-                    <input type="hidden" id="editRegistroId">
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editData">Data</label>
-                            <input type="date" id="editData" class="form-control" readonly>
-                        </div>
-                        <div class="form-group">
-                            <label for="editUsuario">Usuário</label>
-                            <input type="text" id="editUsuario" class="form-control" readonly>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="editEntrada">Entrada</label>
-                            <input type="time" id="editEntrada" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label for="editSaida">Saída</label>
-                            <input type="time" id="editSaida" class="form-control">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="editMotivo">Motivo da Alteração</label>
-                        <textarea id="editMotivo" class="form-control" rows="3" required placeholder="Descreva o motivo da alteração..."></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-actions">
-                <button id="cancelEditBtn" class="btn btn-secondary">Cancelar</button>
-                <button id="saveEditBtn" class="btn btn-success">
-                    <i class="fas fa-save"></i>
-                    Salvar Alterações
-                </button>
-            </div>
-        </div>
-    </div>
+    <script>
+        // Dados locais (simulando banco de dados)
+        let users = [
+            {
+                id: 1,
+                username: 'admin',
+                email: 'admin@sistema.com',
+                nome: 'Administrador',
+                tipo: 'admin',
+                ativo: true,
+                password: '123456'
+            },
+            {
+                id: 2,
+                username: 'joao',
+                email: 'joao@sistema.com',
+                nome: 'João Silva',
+                tipo: 'funcionario',
+                ativo: true,
+                password: '123'
+            }
+        ];
 
-    <!-- Modal de Adicionar Usuário -->
-    <div id="addUserModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Adicionar Novo Usuário</h3>
-                <button id="closeAddUserModal" class="btn-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm">
-                    <div class="form-group">
-                        <label for="addUserNome">Nome Completo</label>
-                        <input type="text" id="addUserNome" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserEmail">Email</label>
-                        <input type="email" id="addUserEmail" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserUsername">Usuário</label>
-                        <input type="text" id="addUserUsername" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserPassword">Senha</label>
-                        <input type="password" id="addUserPassword" class="form-control" required minlength="3">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="addUserTipo">Tipo</label>
-                        <select id="addUserTipo" class="form-control" required>
-                            <option value="funcionario">Funcionário</option>
-                            <option value="admin">Administrador</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-actions">
-                <button id="cancelAddUserBtn" class="btn btn-secondary">Cancelar</button>
-                <button id="saveAddUserBtn" class="btn btn-success">
-                    <i class="fas fa-user-plus"></i>
-                    Adicionar Usuário
-                </button>
-            </div>
-        </div>
-    </div>
+        let registros = [
+            {
+                id: 1,
+                funcionario_id: 2,
+                data: new Date().toISOString().split('T')[0],
+                entrada: new Date().toISOString(),
+                saida: null,
+                status: 'pendente'
+            }
+        ];
 
-    <!-- Scripts -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
+        let currentUser = null;
+        let timeInterval = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Sistema iniciado (versão local)');
+            initializeApp();
+        });
+
+        function initializeApp() {
+            setupEventListeners();
+            
+            const savedUser = sessionStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainSystem();
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('showRegisterBtn').addEventListener('click', showRegisterScreen);
+            document.getElementById('showLoginBtn').addEventListener('click', showLoginScreen);
+            document.getElementById('baterPontoBtn').addEventListener('click', showConfirmModal);
+            document.getElementById('confirmBtn').addEventListener('click', confirmBaterPonto);
+            document.getElementById('cancelBtn').addEventListener('click', hideConfirmModal);
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const section = e.currentTarget.dataset.section;
+                    showAdminSection(section);
+                });
+            });
+        }
+
+        function showLoginScreen() {
+            document.getElementById('loginScreen').classList.add('active');
+            document.getElementById('registerScreen').classList.remove('active');
+            document.getElementById('mainSystem').classList.remove('active');
+            clearInterval(timeInterval);
+            hideError('loginError');
+            hideError('registerError');
+        }
+
+        function showRegisterScreen() {
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('registerScreen').classList.add('active');
+            document.getElementById('mainSystem').classList.remove('active');
+            hideError('loginError');
+            hideError('registerError');
+        }
+
+        function showMainSystem() {
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('registerScreen').classList.remove('active');
+            document.getElementById('mainSystem').classList.add('active');
+            
+            if (currentUser.tipo === 'admin') {
+                document.getElementById('funcionarioPanel').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'block';
+                document.getElementById('systemTitle').textContent = 'Painel Administrativo';
+                loadAdminData();
+            } else {
+                document.getElementById('funcionarioPanel').style.display = 'block';
+                document.getElementById('adminPanel').style.display = 'none';
+                document.getElementById('systemTitle').textContent = 'Sistema de Ponto';
+                loadFuncionarioData();
+            }
+            
+            document.getElementById('userGreeting').textContent = `Olá, ${currentUser.nome}`;
+            startClock();
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            console.log('🔐 Tentando login com:', email);
+            
+            const user = users.find(u => u.email === email && u.ativo);
+            
+            if (!user) {
+                showError('loginError', 'Email não encontrado ou usuário inativo');
+                return;
+            }
+            
+            if (user.password !== password) {
+                showError('loginError', 'Senha incorreta');
+                return;
+            }
+            
+            currentUser = user;
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            console.log('✅ Login bem-sucedido:', currentUser);
+            showMainSystem();
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('regNome').value.trim();
+            const email = document.getElementById('regEmail').value.trim().toLowerCase();
+            const senha = document.getElementById('regPassword').value;
+            
+            if (!nome || !email || !senha) {
+                showError('registerError', 'Preencha todos os campos');
+                return;
+            }
+            
+            if (users.find(u => u.email === email)) {
+                showError('registerError', 'Este email já está cadastrado');
+                return;
+            }
+            
+            const newUser = {
+                id: users.length + 1,
+                username: email,
+                email: email,
+                nome: nome,
+                tipo: 'funcionario',
+                ativo: false,
+                password: senha
+            };
+            
+            users.push(newUser);
+            
+            showSuccess('registerError', 'Conta criada com sucesso! Aguarde aprovação do administrador.');
+            document.getElementById('registerForm').reset();
+            
+            setTimeout(() => {
+                showLoginScreen();
+            }, 3000);
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            sessionStorage.removeItem('currentUser');
+            clearInterval(timeInterval);
+            showLoginScreen();
+            
+            document.getElementById('loginForm').reset();
+            document.getElementById('registerForm').reset();
+        }
+
+        function startClock() {
+            function updateClock() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('pt-BR');
+                const dateString = now.toLocaleDateString('pt-BR');
+                
+                const timeElement = document.getElementById('currentTime');
+                const dateElement = document.getElementById('currentDate');
+                
+                if (timeElement) timeElement.textContent = timeString;
+                if (dateElement) dateElement.textContent = dateString;
+                
+                const confirmTime = document.getElementById('confirmTime');
+                if (confirmTime && document.getElementById('confirmModal').style.display !== 'none') {
+                    confirmTime.textContent = timeString;
+                }
+            }
+            
+            updateClock();
+            timeInterval = setInterval(updateClock, 1000);
+        }
+
+        async function loadFuncionarioData() {
+            loadPontoStatus();
+            loadMeusRegistros();
+        }
+
+        function loadPontoStatus() {
+            const hoje = new Date().toISOString().split('T')[0];
+            const registrosHoje = registros.filter(r => r.funcionario_id === currentUser.id && r.data === hoje);
+            const ultimoRegistro = registrosHoje[registrosHoje.length - 1];
+            
+            const statusElement = document.getElementById('pontoStatus');
+            
+            if (!ultimoRegistro) {
+                statusElement.innerHTML = '<p>Nenhum ponto registrado hoje. Clique para registrar sua <strong>entrada</strong>.</p>';
+            } else if (!ultimoRegistro.saida) {
+                statusElement.innerHTML = `
+                    <p>Entrada registrada às <strong>${formatTime(ultimoRegistro.entrada)}</strong></p>
+                    <p>Clique para registrar sua <strong>saída</strong>.</p>
+                `;
+            } else {
+                statusElement.innerHTML = `
+                    <p>✅ Ponto completo registrado hoje</p>
+                    <p>Entrada: <strong>${formatTime(ultimoRegistro.entrada)}</strong></p>
+                    <p>Saída: <strong>${formatTime(ultimoRegistro.saida)}</strong></p>
+                `;
+            }
+        }
+
+        function loadMeusRegistros() {
+            const meusRegistros = registros
+                .filter(r => r.funcionario_id === currentUser.id)
+                .sort((a, b) => new Date(b.data) - new Date(a.data))
+                .slice(0, 10);
+            
+            const container = document.getElementById('meusRegistros');
+            
+            if (meusRegistros.length === 0) {
+                container.innerHTML = '<p>Nenhum registro encontrado</p>';
+                return;
+            }
+            
+            container.innerHTML = meusRegistros.map(registro => `
+                <div class="registro-item">
+                    <div class="registro-header">
+                        <span class="registro-data">${formatDate(registro.data)}</span>
+                        <span class="registro-status status-${registro.status}">${getStatusText(registro.status)}</span>
+                    </div>
+                    <div class="registro-horarios">
+                        <div class="horario-item">
+                            <div class="horario-label">Entrada</div>
+                            <div class="horario-valor">${registro.entrada ? formatTime(registro.entrada) : '--:--'}</div>
+                        </div>
+                        <div class="horario-item">
+                            <div class="horario-label">Saída</div>
+                            <div class="horario-valor">${registro.saida ? formatTime(registro.saida) : '--:--'}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'flex';
+            document.getElementById('confirmMessage').textContent = 'Confirmar registro de ponto?';
+        }
+
+        function hideConfirmModal() {
+            document.getElementById('confirmModal').style.display = 'none';
+        }
+
+        function confirmBaterPonto() {
+            const agora = new Date();
+            const hoje = agora.toISOString().split('T')[0];
+            
+            const registrosHoje = registros.filter(r => r.funcionario_id === currentUser.id && r.data === hoje);
+            const ultimoRegistro = registrosHoje[registrosHoje.length - 1];
+            const isEntrada = !ultimoRegistro || ultimoRegistro.saida;
+            
+            if (isEntrada) {
+                registros.push({
+                    id: registros.length + 1,
+                    funcionario_id: currentUser.id,
+                    data: hoje,
+                    entrada: agora.toISOString(),
+                    saida: null,
+                    status: 'pendente'
+                });
+            } else {
+                ultimoRegistro.saida = agora.toISOString();
+                ultimoRegistro.status = 'pendente';
+            }
+            
+            hideConfirmModal();
+            loadPontoStatus();
+            loadMeusRegistros();
+            
+            alert(`✅ ${isEntrada ? 'Entrada' : 'Saída'} registrada com sucesso!`);
+        }
+
+        function loadAdminData() {
+            loadPontosPendentes();
+            loadTodosRegistros();
+            loadUsuarios();
+            showAdminSection('pendentes');
+        }
+
+        function showAdminSection(section) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            
+            document.querySelectorAll('.admin-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+            document.getElementById(`admin${section.charAt(0).toUpperCase() + section.slice(1)}`).style.display = 'block';
+            
+            switch(section) {
+                case 'pendentes':
+                    loadPontosPendentes();
+                    break;
+                case 'todos':
+                    loadTodosRegistros();
+                    break;
+                case 'usuarios':
+                    loadUsuarios();
+                    break;
+            }
+        }
+
+        function loadPontosPendentes() {
+            const pontosPendentes = registros.filter(r => r.status === 'pendente');
+            
+            const container = document.getElementById('pontosPendentes');
+            const countElement = document.getElementById('pendentesCount');
+            
+            if (countElement) countElement.textContent = pontosPendentes.length;
+            
+            if (pontosPendentes.length === 0) {
+                container.innerHTML = '<p>Nenhum ponto pendente</p>';
+                return;
+            }
+            
+            container.innerHTML = pontosPendentes.map(ponto => {
+                const user = users.find(u => u.id === ponto.funcionario_id);
+                return `
+                    <div class="registro-item">
+                        <div class="registro-header">
+                            <div>
+                                <strong>${user?.nome || 'Usuário'}</strong>
+                                <span class="registro-data">${formatDate(ponto.data)}</span>
+                            </div>
+                            <div class="user-actions">
+                                <button class="btn btn-success btn-sm" onclick="aprovarPonto(${ponto.id})">
+                                    <i class="fas fa-check"></i> Aprovar
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="rejeitarPonto(${ponto.id})">
+                                    <i class="fas fa-times"></i> Rejeitar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="registro-horarios">
+                            <div class="horario-item">
+                                <div class="horario-label">Entrada</div>
+                                <div class="horario-valor">${ponto.entrada ? formatTime(ponto.entrada) : '--:--'}</div>
+                            </div>
+                            <div class="horario-item">
+                                <div class="horario-label">Saída</div>
+                                <div class="horario-valor">${ponto.saida ? formatTime(ponto.saida) : '--:--'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadTodosRegistros() {
+            const todosRegistros = registros
+                .sort((a, b) => new Date(b.data) - new Date(a.data))
+                .slice(0, 50);
+            
+            const container = document.getElementById('todosRegistros');
+            
+            if (todosRegistros.length === 0) {
+                container.innerHTML = '<p>Nenhum registro encontrado</p>';
+                return;
+            }
+            
+            container.innerHTML = todosRegistros.map(registro => {
+                const user = users.find(u => u.id === registro.funcionario_id);
+                return `
+                    <div class="registro-item">
+                        <div class="registro-header">
+                            <div>
+                                <strong>${user?.nome || 'Usuário'}</strong>
+                                <span class="registro-data">${formatDate(registro.data)}</span>
+                            </div>
+                            <span class="registro-status status-${registro.status}">${getStatusText(registro.status)}</span>
+                        </div>
+                        <div class="registro-horarios">
+                            <div class="horario-item">
+                                <div class="horario-label">Entrada</div>
+                                <div class="horario-valor">${registro.entrada ? formatTime(registro.entrada) : '--:--'}</div>
+                            </div>
+                            <div class="horario-item">
+                                <div class="horario-label">Saída</div>
+                                <div class="horario-valor">${registro.saida ? formatTime(registro.saida) : '--:--'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadUsuarios() {
+            const ativos = users.filter(u => u.ativo === true);
+            const pendentes = users.filter(u => u.ativo === false);
+            
+            const container = document.getElementById('usuariosLista');
+            
+            let html = '<h3>Usuários Ativos</h3>';
+            html += ativos.map(usuario => `
+                <div class="user-item">
+                    <div class="user-info">
+                        <h4>${usuario.nome}</h4>
+                        <p>Email: ${usuario.email}</p>
+                        <p>Tipo: ${usuario.tipo}</p>
+                    </div>
+                    <div class="user-actions">
+                        ${usuario.tipo !== 'admin' ? `
+                            <button class="btn btn-danger btn-sm" onclick="removerUsuario(${usuario.id}, '${usuario.nome}')">
+                                <i class="fas fa-trash"></i> Remover
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            if (pendentes.length > 0) {
+                html += '<h3 style="margin-top: 30px;">Usuários Pendentes</h3>';
+                html += pendentes.map(usuario => `
+                    <div class="user-item">
+                        <div class="user-info">
+                            <h4>${usuario.nome}</h4>
+                            <p>Email: ${usuario.email}</p>
+                            <p>Status: Aguardando aprovação</p>
+                        </div>
+                        <div class="user-actions">
+                            <button class="btn btn-success btn-sm" onclick="aprovarUsuario(${usuario.id})">
+                                <i class="fas fa-check"></i> Aprovar
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="rejeitarUsuario(${usuario.id})">
+                                <i class="fas fa-times"></i> Rejeitar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function aprovarPonto(id) {
+            const registro = registros.find(r => r.id === id);
+            if (registro) {
+                registro.status = 'aprovado';
+                alert('Ponto aprovado com sucesso!');
+                loadPontosPendentes();
+                loadTodosRegistros();
+            }
+        }
+
+        function rejeitarPonto(id) {
+            const motivo = prompt('Motivo da rejeição (opcional):');
+            const registro = registros.find(r => r.id === id);
+            if (registro) {
+                registro.status = 'rejeitado';
+                registro.observacoes = motivo || 'Rejeitado pelo administrador';
+                alert('Ponto rejeitado!');
+                loadPontosPendentes();
+                loadTodosRegistros();
+            }
+        }
+
+        function aprovarUsuario(id) {
+            const usuario = users.find(u => u.id === id);
+            if (usuario) {
+                usuario.ativo = true;
+                alert('Usuário aprovado com sucesso!');
+                loadUsuarios();
+            }
+        }
+
+        function rejeitarUsuario(id) {
+            if (confirm('Tem certeza que deseja rejeitar este usuário?')) {
+                const index = users.findIndex(u => u.id === id);
+                if (index !== -1) {
+                    users.splice(index, 1);
+                    alert('Usuário rejeitado!');
+                    loadUsuarios();
+                }
+            }
+        }
+
+        function removerUsuario(id, nome) {
+            if (confirm(`Tem certeza que deseja remover permanentemente o usuário "${nome}"?`)) {
+                const userIndex = users.findIndex(u => u.id === id);
+                if (userIndex !== -1) {
+                    users.splice(userIndex, 1);
+                    registros = registros.filter(r => r.funcionario_id !== id);
+                    alert(`Usuário "${nome}" removido com sucesso!`);
+                    loadUsuarios();
+                }
+            }
+        }
+
+        function formatTime(datetime) {
+            return new Date(datetime).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDate(date) {
+            return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'pendente': return 'Pendente';
+                case 'aprovado': return 'Aprovado';
+                case 'rejeitado': return 'Rejeitado';
+                default: return status;
+            }
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            element.className = 'error-message';
+        }
+
+        function showSuccess(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+            element.className = 'success-message';
+        }
+
+        function hideError(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
