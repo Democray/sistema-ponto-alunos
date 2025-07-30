@@ -1,5 +1,14 @@
-const SUPABASE_URL = 'https://qlwbdjpaiewzagtiwcgo.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsd2JkanBhaWV3emFndGl3Y2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4OTUyMzksImV4cCI6MjA2OTQ3MTIzOX0.x0Q-lB4nARaAe-sorUual5h0N2V0aHD6jUt19_i4A44';
+// ========================================
+// CONFIGURAÇÃO DO SUPABASE
+// ALTERE APENAS ESTAS DUAS LINHAS:
+// ========================================
+
+const SUPABASE_URL = 'https://qlwbdjpaiewzagtiwcgo.supabase.co';  // Cole aqui a URL do seu projeto Supabase
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFsd2JkanBhaWV3emFndGl3Y2dvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4OTUyMzksImV4cCI6MjA2OTQ3MTIzOX0.x0Q-lB4nARaAe-sorUual5h0N2V0aHD6jUt19_i4A44';  // Cole aqui a chave anon do seu projeto
+
+// ========================================
+// NÃO ALTERE NADA ABAIXO DESTA LINHA
+// ========================================
 
 // Inicializar Supabase
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -8,7 +17,7 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let timeInterval = null;
 
-// Configurações
+// Configurações do sistema
 const CONFIG = {
     timezone: 'America/Sao_Paulo',
     almocoInicio: 12,
@@ -16,29 +25,7 @@ const CONFIG = {
     horasParaDesconto: 6
 };
 
-// Dados iniciais para garantir funcionamento
-const INITIAL_USERS = [
-    {
-        id: 1,
-        username: 'admin',
-        email: 'admin@sistema.com',
-        nome: 'Administrador',
-        tipo: 'admin',
-        ativo: true,
-        password: '123456'
-    },
-    {
-        id: 2,
-        username: 'joao',
-        email: 'joao@sistema.com',
-        nome: 'João Silva',
-        tipo: 'funcionario',
-        ativo: true,
-        password: '123'
-    }
-];
-
-// Inicialização
+// Inicialização quando a página carrega
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Sistema iniciado');
     console.log('🔗 Conectando ao Supabase:', SUPABASE_URL);
@@ -51,39 +38,7 @@ async function initializeApp() {
     await testSupabaseConnection();
     
     // Event listeners principais
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    document.getElementById('registerForm').addEventListener('submit', handleRegister);
-    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-    document.getElementById('baterPontoBtn').addEventListener('click', showConfirmModal);
-    document.getElementById('confirmBtn').addEventListener('click', confirmBaterPonto);
-    document.getElementById('cancelBtn').addEventListener('click', hideConfirmModal);
-    
-    // Navegação entre telas
-    document.getElementById('showRegisterBtn').addEventListener('click', showRegisterScreen);
-    document.getElementById('showLoginBtn').addEventListener('click', showLoginScreen);
-    
-    // Admin nav
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const section = e.currentTarget.dataset.section;
-            showAdminSection(section);
-        });
-    });
-    
-    // Tabs de usuários
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const tab = e.currentTarget.dataset.tab;
-            showUsersTab(tab);
-        });
-    });
-    
-    // Modais
-    setupModals();
-    
-    // Filtros
-    document.getElementById('aplicarFiltros').addEventListener('click', aplicarFiltros);
-    document.getElementById('gerarRelatorioHoras').addEventListener('click', gerarRelatorioHoras);
+    setupEventListeners();
     
     // Verificar sessão salva
     const savedUser = sessionStorage.getItem('currentUser');
@@ -95,12 +50,57 @@ async function initializeApp() {
     }
 }
 
+// Configurar event listeners
+function setupEventListeners() {
+    // Login e registro
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+    
+    // Navegação entre telas
+    document.getElementById('showRegisterBtn').addEventListener('click', showRegisterScreen);
+    document.getElementById('showLoginBtn').addEventListener('click', showLoginScreen);
+    
+    // Bater ponto
+    document.getElementById('baterPontoBtn').addEventListener('click', showConfirmModal);
+    document.getElementById('confirmBtn').addEventListener('click', confirmBaterPonto);
+    document.getElementById('cancelBtn').addEventListener('click', hideConfirmModal);
+    
+    // Admin navigation
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const section = e.currentTarget.dataset.section;
+            showAdminSection(section);
+        });
+    });
+    
+    // User tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tab = e.currentTarget.dataset.tab;
+            showUsersTab(tab);
+        });
+    });
+    
+    // Modais
+    setupModals();
+    
+    // Filtros e relatórios
+    document.getElementById('aplicarFiltros').addEventListener('click', aplicarFiltros);
+    document.getElementById('gerarRelatorioHoras').addEventListener('click', gerarRelatorioHoras);
+}
+
 // Testar conexão com Supabase
 async function testSupabaseConnection() {
     try {
         console.log('🔍 Testando conexão com Supabase...');
         
-        // Testar consulta simples
+        if (SUPABASE_URL === 'SUA_URL_AQUI' || SUPABASE_ANON_KEY === 'SUA_CHAVE_AQUI') {
+            console.error('❌ Configure as chaves do Supabase no início do arquivo!');
+            alert('ERRO: Configure as chaves do Supabase no arquivo JavaScript!');
+            return false;
+        }
+        
         const { data, error } = await supabase
             .from('users')
             .select('count')
@@ -108,7 +108,7 @@ async function testSupabaseConnection() {
         
         if (error) {
             console.error('❌ Erro na conexão Supabase:', error);
-            console.log('🔄 Usando dados locais como fallback');
+            alert('Erro na conexão com o banco de dados. Verifique as configurações.');
             return false;
         }
         
@@ -117,57 +117,35 @@ async function testSupabaseConnection() {
         
     } catch (error) {
         console.error('❌ Erro crítico Supabase:', error);
-        console.log('🔄 Usando dados locais como fallback');
+        alert('Erro crítico na conexão. Verifique as chaves do Supabase.');
         return false;
     }
 }
 
-// Setup dos modais
-function setupModals() {
-    // Modal de edição
-    document.getElementById('closeEditModal').addEventListener('click', hideEditModal);
-    document.getElementById('cancelEditBtn').addEventListener('click', hideEditModal);
-    document.getElementById('saveEditBtn').addEventListener('click', saveEditRegistro);
-    
-    // Modal de adicionar usuário
-    document.getElementById('addUserBtn').addEventListener('click', showAddUserModal);
-    document.getElementById('closeAddUserModal').addEventListener('click', hideAddUserModal);
-    document.getElementById('cancelAddUserBtn').addEventListener('click', hideAddUserModal);
-    document.getElementById('saveAddUserBtn').addEventListener('click', saveAddUser);
-}
-
 // === NAVEGAÇÃO ENTRE TELAS ===
 
-// Mostrar tela de login
 function showLoginScreen() {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainSystem').style.display = 'none';
     clearInterval(timeInterval);
-    
-    // Limpar mensagens
     hideError('loginError');
     hideError('registerError');
 }
 
-// Mostrar tela de registro
 function showRegisterScreen() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('registerScreen').style.display = 'flex';
     document.getElementById('mainSystem').style.display = 'none';
-    
-    // Limpar mensagens
     hideError('loginError');
     hideError('registerError');
 }
 
-// Mostrar sistema principal
 function showMainSystem() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('registerScreen').style.display = 'none';
     document.getElementById('mainSystem').style.display = 'block';
     
-    // Configurar interface baseada no tipo de usuário
     if (currentUser.tipo === 'admin') {
         document.getElementById('funcionarioPanel').style.display = 'none';
         document.getElementById('adminPanel').style.display = 'block';
@@ -180,16 +158,12 @@ function showMainSystem() {
         loadFuncionarioData();
     }
     
-    // Atualizar saudação
     document.getElementById('userGreeting').textContent = `Olá, ${currentUser.nome}`;
-    
-    // Iniciar relógio
     startClock();
 }
 
 // === AUTENTICAÇÃO ===
 
-// Login
 async function handleLogin(e) {
     e.preventDefault();
     
@@ -199,40 +173,20 @@ async function handleLogin(e) {
     console.log('🔐 Tentando login com:', email);
     
     try {
-        // Primeiro tentar buscar no Supabase
-        let user = null;
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .eq('ativo', true)
+            .single();
         
-        try {
-            const { data: supabaseUser, error } = await supabase
-                .from('users')
-                .select('*')
-                .eq('email', email)
-                .eq('ativo', true)
-                .single();
-            
-            if (!error && supabaseUser) {
-                user = supabaseUser;
-                console.log('✅ Usuário encontrado no Supabase:', user);
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro Supabase, tentando dados locais:', supabaseError);
-        }
-        
-        // Se não encontrou no Supabase, usar dados locais
-        if (!user) {
-            user = INITIAL_USERS.find(u => u.email === email && u.ativo);
-            if (user) {
-                console.log('✅ Usuário encontrado nos dados locais:', user);
-            }
-        }
-        
-        if (!user) {
+        if (error || !user) {
             showError('loginError', 'Email não encontrado ou usuário inativo');
             return;
         }
         
-        // Verificar senha
-        if (user.password !== password) {
+        // Verificar senha (usando password_hash como senha temporária)
+        if (user.password_hash !== password) {
             showError('loginError', 'Senha incorreta');
             return;
         }
@@ -249,7 +203,6 @@ async function handleLogin(e) {
     }
 }
 
-// Registro
 async function handleRegister(e) {
     e.preventDefault();
     
@@ -271,59 +224,42 @@ async function handleRegister(e) {
     
     try {
         // Verificar se email já existe
-        let emailExists = false;
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('email')
+            .eq('email', email)
+            .single();
         
-        try {
-            const { data: existingUser } = await supabase
-                .from('users')
-                .select('email')
-                .eq('email', email)
-                .single();
-            
-            if (existingUser) {
-                emailExists = true;
-            }
-        } catch (supabaseError) {
-            // Verificar nos dados locais
-            const localUser = INITIAL_USERS.find(u => u.email === email);
-            if (localUser) {
-                emailExists = true;
-            }
-        }
-        
-        if (emailExists) {
+        if (existingUser) {
             showError('registerError', 'Este email já está cadastrado');
             return;
         }
         
-        // Tentar criar no Supabase
-        try {
-            const { data: newUser, error } = await supabase
-                .from('users')
-                .insert({
-                    username: email,
-                    password_hash: `temp_${senha}`,
-                    nome: nome,
-                    email: email,
-                    tipo: 'funcionario',
-                    ativo: false
-                })
-                .select()
-                .single();
-            
-            if (!error && newUser) {
-                console.log('✅ Usuário criado no Supabase:', newUser);
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao criar no Supabase, continuando...', supabaseError);
+        // Criar novo usuário
+        const { data: newUser, error } = await supabase
+            .from('users')
+            .insert({
+                username: email,
+                password_hash: senha,
+                nome: nome,
+                email: email,
+                tipo: 'funcionario',
+                ativo: false
+            })
+            .select()
+            .single();
+        
+        if (error) {
+            console.error('Erro ao criar usuário:', error);
+            showError('registerError', 'Erro ao criar conta. Tente novamente.');
+            return;
         }
         
+        console.log('✅ Usuário criado:', newUser);
         showSuccess('registerError', 'Conta criada com sucesso! Aguarde aprovação do administrador.');
         
-        // Limpar formulário
         document.getElementById('registerForm').reset();
         
-        // Voltar para login após 3 segundos
         setTimeout(() => {
             showLoginScreen();
         }, 3000);
@@ -334,14 +270,12 @@ async function handleRegister(e) {
     }
 }
 
-// Logout
 function handleLogout() {
     currentUser = null;
     sessionStorage.removeItem('currentUser');
     clearInterval(timeInterval);
     showLoginScreen();
     
-    // Limpar formulários
     document.getElementById('loginForm').reset();
     document.getElementById('registerForm').reset();
     hideError('loginError');
@@ -362,7 +296,6 @@ function startClock() {
         if (timeElement) timeElement.textContent = timeString;
         if (dateElement) dateElement.textContent = dateString;
         
-        // Atualizar modal de confirmação se estiver aberto
         const confirmTime = document.getElementById('confirmTime');
         if (confirmTime && document.getElementById('confirmModal').style.display !== 'none') {
             confirmTime.textContent = timeString;
@@ -384,23 +317,12 @@ async function loadPontoStatus() {
     try {
         const hoje = new Date().toISOString().split('T')[0];
         
-        // Tentar buscar no Supabase primeiro
-        let registros = [];
-        
-        try {
-            const { data: supabaseRegistros } = await supabase
-                .from('registros_ponto')
-                .select('*')
-                .eq('funcionario_id', currentUser.id)
-                .eq('data', hoje)
-                .order('entrada', { ascending: false });
-            
-            if (supabaseRegistros) {
-                registros = supabaseRegistros;
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao buscar registros no Supabase:', supabaseError);
-        }
+        const { data: registros } = await supabase
+            .from('registros_ponto')
+            .select('*')
+            .eq('funcionario_id', currentUser.id)
+            .eq('data', hoje)
+            .order('entrada', { ascending: false });
         
         const statusElement = document.getElementById('pontoStatus');
         const ultimoRegistro = registros?.[0];
@@ -428,26 +350,15 @@ async function loadPontoStatus() {
 
 async function loadMeusRegistros() {
     try {
-        // Tentar buscar no Supabase primeiro
-        let registros = [];
-        
-        try {
-            const { data: supabaseRegistros } = await supabase
-                .from('registros_ponto')
-                .select(`
-                    *,
-                    users!registros_ponto_funcionario_id_fkey(nome)
-                `)
-                .eq('funcionario_id', currentUser.id)
-                .order('data', { ascending: false })
-                .limit(10);
-            
-            if (supabaseRegistros) {
-                registros = supabaseRegistros;
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao buscar registros no Supabase:', supabaseError);
-        }
+        const { data: registros } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .eq('funcionario_id', currentUser.id)
+            .order('data', { ascending: false })
+            .limit(10);
         
         const container = document.getElementById('meusRegistros');
         
@@ -486,31 +397,7 @@ async function loadMeusRegistros() {
 
 function showConfirmModal() {
     document.getElementById('confirmModal').style.display = 'flex';
-    
-    // Atualizar mensagem baseada no status atual
-    loadPontoStatus().then(() => {
-        const hoje = new Date().toISOString().split('T')[0];
-        
-        // Verificar último registro
-        supabase
-            .from('registros_ponto')
-            .select('*')
-            .eq('funcionario_id', currentUser.id)
-            .eq('data', hoje)
-            .order('entrada', { ascending: false })
-            .limit(1)
-            .then(({ data: registros }) => {
-                const ultimoRegistro = registros?.[0];
-                const isEntrada = !ultimoRegistro || ultimoRegistro.saida;
-                
-                document.getElementById('confirmMessage').textContent = 
-                    `Confirmar registro de ${isEntrada ? 'ENTRADA' : 'SAÍDA'}?`;
-            })
-            .catch(() => {
-                // Fallback se Supabase falhar
-                document.getElementById('confirmMessage').textContent = 'Confirmar registro de ponto?';
-            });
-    });
+    document.getElementById('confirmMessage').textContent = 'Confirmar registro de ponto?';
 }
 
 function hideConfirmModal() {
@@ -523,60 +410,41 @@ async function confirmBaterPonto() {
         const hoje = agora.toISOString().split('T')[0];
         
         // Buscar último registro do dia
-        let registros = [];
-        
-        try {
-            const { data: supabaseRegistros } = await supabase
-                .from('registros_ponto')
-                .select('*')
-                .eq('funcionario_id', currentUser.id)
-                .eq('data', hoje)
-                .order('entrada', { ascending: false })
-                .limit(1);
-            
-            if (supabaseRegistros) {
-                registros = supabaseRegistros;
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao buscar registros:', supabaseError);
-        }
+        const { data: registros } = await supabase
+            .from('registros_ponto')
+            .select('*')
+            .eq('funcionario_id', currentUser.id)
+            .eq('data', hoje)
+            .order('entrada', { ascending: false })
+            .limit(1);
         
         const ultimoRegistro = registros?.[0];
         const isEntrada = !ultimoRegistro || ultimoRegistro.saida;
         
-        // Tentar registrar no Supabase
-        try {
-            if (isEntrada) {
-                // Registrar entrada
-                const { error } = await supabase
-                    .from('registros_ponto')
-                    .insert({
-                        funcionario_id: currentUser.id,
-                        data: hoje,
-                        entrada: agora.toISOString(),
-                        status: 'pendente'
-                    });
-                
-                if (error) throw error;
-                
-            } else {
-                // Registrar saída
-                const { error } = await supabase
-                    .from('registros_ponto')
-                    .update({
-                        saida: agora.toISOString(),
-                        status: 'pendente'
-                    })
-                    .eq('id', ultimoRegistro.id);
-                
-                if (error) throw error;
-            }
+        if (isEntrada) {
+            // Registrar entrada
+            const { error } = await supabase
+                .from('registros_ponto')
+                .insert({
+                    funcionario_id: currentUser.id,
+                    data: hoje,
+                    entrada: agora.toISOString(),
+                    status: 'pendente'
+                });
             
-            console.log('✅ Ponto registrado no Supabase');
+            if (error) throw error;
             
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao registrar no Supabase:', supabaseError);
-            // Continuar mesmo se Supabase falhar
+        } else {
+            // Registrar saída
+            const { error } = await supabase
+                .from('registros_ponto')
+                .update({
+                    saida: agora.toISOString(),
+                    status: 'pendente'
+                })
+                .eq('id', ultimoRegistro.id);
+            
+            if (error) throw error;
         }
         
         hideConfirmModal();
@@ -602,19 +470,16 @@ async function loadAdminData() {
 }
 
 function showAdminSection(section) {
-    // Atualizar navegação
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     document.querySelector(`[data-section="${section}"]`).classList.add('active');
     
-    // Mostrar seção
     document.querySelectorAll('.admin-section').forEach(sec => {
         sec.style.display = 'none';
     });
     document.getElementById(`admin${section.charAt(0).toUpperCase() + section.slice(1)}`).style.display = 'block';
     
-    // Carregar dados específicos
     switch(section) {
         case 'pendentes':
             loadPontosPendentes();
@@ -625,32 +490,19 @@ function showAdminSection(section) {
         case 'usuarios':
             loadUsuarios();
             break;
-        case 'relatorios':
-            // Relatórios já carregados
-            break;
     }
 }
 
 async function loadPontosPendentes() {
     try {
-        let pontos = [];
-        
-        try {
-            const { data: supabasePontos } = await supabase
-                .from('registros_ponto')
-                .select(`
-                    *,
-                    users!registros_ponto_funcionario_id_fkey(nome)
-                `)
-                .eq('status', 'pendente')
-                .order('data', { ascending: false });
-            
-            if (supabasePontos) {
-                pontos = supabasePontos;
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao buscar pontos pendentes:', supabaseError);
-        }
+        const { data: pontos } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .eq('status', 'pendente')
+            .order('data', { ascending: false });
         
         const container = document.getElementById('pontosPendentes');
         const countElement = document.getElementById('pendentesCount');
@@ -676,9 +528,6 @@ async function loadPontosPendentes() {
                         <button class="btn btn-danger btn-sm" onclick="rejeitarPonto(${ponto.id})">
                             <i class="fas fa-times"></i> Rejeitar
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="editarRegistro(${ponto.id})">
-                            <i class="fas fa-edit"></i> Editar
-                        </button>
                     </div>
                 </div>
                 <div class="registro-horarios">
@@ -702,24 +551,14 @@ async function loadPontosPendentes() {
 
 async function loadTodosRegistros() {
     try {
-        let registros = [];
-        
-        try {
-            const { data: supabaseRegistros } = await supabase
-                .from('registros_ponto')
-                .select(`
-                    *,
-                    users!registros_ponto_funcionario_id_fkey(nome)
-                `)
-                .order('data', { ascending: false })
-                .limit(50);
-            
-            if (supabaseRegistros) {
-                registros = supabaseRegistros;
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao buscar todos os registros:', supabaseError);
-        }
+        const { data: registros } = await supabase
+            .from('registros_ponto')
+            .select(`
+                *,
+                users!registros_ponto_funcionario_id_fkey(nome)
+            `)
+            .order('data', { ascending: false })
+            .limit(50);
         
         const container = document.getElementById('todosRegistros');
         
@@ -759,35 +598,18 @@ async function loadTodosRegistros() {
 
 async function loadUsuarios() {
     try {
-        let usuarios = [];
+        const { data: usuarios } = await supabase
+            .from('users')
+            .select('*')
+            .order('nome');
         
-        try {
-            const { data: supabaseUsuarios } = await supabase
-                .from('users')
-                .select('*')
-                .order('nome');
-            
-            if (supabaseUsuarios) {
-                usuarios = supabaseUsuarios;
-            }
-        } catch (supabaseError) {
-            console.log('⚠️ Erro ao buscar usuários, usando dados locais:', supabaseError);
-            usuarios = INITIAL_USERS;
-        }
+        const ativos = usuarios?.filter(u => u.ativo === true) || [];
+        const pendentes = usuarios?.filter(u => u.ativo === false) || [];
         
-        if (!usuarios || usuarios.length === 0) {
-            usuarios = INITIAL_USERS;
-        }
-        
-        const ativos = usuarios.filter(u => u.ativo === true);
-        const pendentes = usuarios.filter(u => u.ativo === false);
-        const inativos = [];
-        
-        // Atualizar contadores
         const countElement = document.getElementById('usuariosPendentesCount');
         if (countElement) countElement.textContent = pendentes.length;
         
-        // Carregar usuários ativos
+        // Usuários ativos
         const ativosContainer = document.getElementById('usuariosAtivos');
         ativosContainer.innerHTML = ativos.map(usuario => `
             <div class="user-item">
@@ -806,7 +628,7 @@ async function loadUsuarios() {
             </div>
         `).join('');
         
-        // Carregar usuários pendentes
+        // Usuários pendentes
         const pendentesContainer = document.getElementById('usuariosPendentes');
         pendentesContainer.innerHTML = pendentes.map(usuario => `
             <div class="user-item">
@@ -826,7 +648,7 @@ async function loadUsuarios() {
             </div>
         `).join('');
         
-        // Carregar filtro de usuários
+        // Filtro de usuários
         const filtroSelect = document.getElementById('filtroUsuario');
         if (filtroSelect) {
             filtroSelect.innerHTML = '<option value="">Todos os usuários</option>' +
@@ -839,13 +661,11 @@ async function loadUsuarios() {
 }
 
 function showUsersTab(tab) {
-    // Atualizar tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
     
-    // Mostrar container
     document.querySelectorAll('.users-container').forEach(container => {
         container.style.display = 'none';
     });
@@ -966,7 +786,15 @@ async function removerUsuario(id, nome) {
     }
 }
 
-// === MODAL ADICIONAR USUÁRIO ===
+// === MODAIS ===
+
+function setupModals() {
+    // Modal de adicionar usuário
+    document.getElementById('addUserBtn').addEventListener('click', showAddUserModal);
+    document.getElementById('closeAddUserModal').addEventListener('click', hideAddUserModal);
+    document.getElementById('cancelAddUserBtn').addEventListener('click', hideAddUserModal);
+    document.getElementById('saveAddUserBtn').addEventListener('click', saveAddUser);
+}
 
 function showAddUserModal() {
     document.getElementById('addUserModal').style.display = 'flex';
@@ -991,27 +819,13 @@ async function saveAddUser() {
     
     try {
         // Verificar se email já existe
-        let emailExists = false;
+        const { data: existingUser } = await supabase
+            .from('users')
+            .select('email')
+            .eq('email', email)
+            .single();
         
-        try {
-            const { data: existingUser } = await supabase
-                .from('users')
-                .select('email')
-                .eq('email', email)
-                .single();
-            
-            if (existingUser) {
-                emailExists = true;
-            }
-        } catch (supabaseError) {
-            // Verificar nos dados locais
-            const localUser = INITIAL_USERS.find(u => u.email === email);
-            if (localUser) {
-                emailExists = true;
-            }
-        }
-        
-        if (emailExists) {
+        if (existingUser) {
             showErrorMessage('Este email já está cadastrado');
             return;
         }
@@ -1021,7 +835,7 @@ async function saveAddUser() {
             .from('users')
             .insert({
                 username: username,
-                password_hash: `temp_${password}`,
+                password_hash: password,
                 nome: nome,
                 email: email,
                 tipo: tipo,
@@ -1037,82 +851,6 @@ async function saveAddUser() {
     } catch (error) {
         console.error('❌ Erro ao adicionar usuário:', error);
         showErrorMessage('Erro ao adicionar usuário');
-    }
-}
-
-// === MODAL EDITAR REGISTRO ===
-
-async function editarRegistro(id) {
-    try {
-        const { data: registro } = await supabase
-            .from('registros_ponto')
-            .select(`
-                *,
-                users!registros_ponto_funcionario_id_fkey(nome)
-            `)
-            .eq('id', id)
-            .single();
-        
-        if (!registro) return;
-        
-        // Preencher modal
-        document.getElementById('editRegistroId').value = registro.id;
-        document.getElementById('editData').value = registro.data;
-        document.getElementById('editUsuario').value = registro.users?.nome || 'Usuário';
-        document.getElementById('editEntrada').value = registro.entrada ? formatTimeForInput(registro.entrada) : '';
-        document.getElementById('editSaida').value = registro.saida ? formatTimeForInput(registro.saida) : '';
-        document.getElementById('editMotivo').value = '';
-        
-        // Mostrar modal
-        document.getElementById('editModal').style.display = 'flex';
-        
-    } catch (error) {
-        console.error('❌ Erro ao carregar registro:', error);
-        showErrorMessage('Erro ao carregar registro');
-    }
-}
-
-function hideEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-}
-
-async function saveEditRegistro() {
-    const id = document.getElementById('editRegistroId').value;
-    const entrada = document.getElementById('editEntrada').value;
-    const saida = document.getElementById('editSaida').value;
-    const motivo = document.getElementById('editMotivo').value;
-    
-    if (!motivo.trim()) {
-        showErrorMessage('Motivo da alteração é obrigatório');
-        return;
-    }
-    
-    try {
-        const data = document.getElementById('editData').value;
-        
-        const updateData = {
-            entrada: entrada ? `${data}T${entrada}:00` : null,
-            saida: saida ? `${data}T${saida}:00` : null,
-            observacoes: motivo,
-            editado_por: currentUser.id,
-            editado_em: new Date().toISOString()
-        };
-        
-        const { error } = await supabase
-            .from('registros_ponto')
-            .update(updateData)
-            .eq('id', id);
-        
-        if (error) throw error;
-        
-        hideEditModal();
-        showSuccessMessage('Registro editado com sucesso!');
-        await loadPontosPendentes();
-        await loadTodosRegistros();
-        
-    } catch (error) {
-        console.error('❌ Erro ao editar registro:', error);
-        showErrorMessage('Erro ao editar registro');
     }
 }
 
@@ -1268,15 +1006,6 @@ function formatTime(datetime) {
 
 function formatDate(date) {
     return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
-}
-
-function formatTimeForInput(datetime) {
-    return new Date(datetime).toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-        timeZone: 'America/Sao_Paulo'
-    });
 }
 
 function getStatusText(status) {
